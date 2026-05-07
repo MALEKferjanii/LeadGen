@@ -1,0 +1,453 @@
+\chapter{Réalisation et résultats}
+\markboth{Chapitre 4}{Réalisation et résultats}
+\setcounter{chapter}{4}
+\setcounter{section}{0}
+\minitoc
+\newpage
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+
+Ce chapitre présente l'environnement de développement, les détails
+d'implémentation des composants clés, et les résultats quantitatifs obtenus
+lors des collectes réelles effectuées au 2 mai 2026.
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Environnement de développement}
+
+\subsection{Stack technique}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{3cm} L{4cm} L{6cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Catégorie} & \textbf{Outil / Version} & \textbf{Rôle} \\
+    \midrule
+    Langage & Python 3.11 & Collecteurs, pipeline, API, NLP \\
+    API Framework & FastAPI + Uvicorn & Exposition REST, BackgroundTasks \\
+    Base de données & PostgreSQL 15-alpine & Stockage relationnel, tableaux natifs \\
+    Pilote DB async & asyncpg 0.29 & Pool de connexions hautes performances \\
+    HTTP client & httpx (async) & BOAMP, TED, Malt \\
+    LinkedIn & linkedin-api 2.x & Scraping via mobile API interne \\
+    Retry & tenacity & Backoff exponentiel sur APIs externes \\
+    NLP & scikit-learn 1.4 & TF-IDF, LinearSVC, CalibratedCV \\
+    LLM & Groq (llama-3.1-8b) & Génération messages/emails \\
+    Automatisation & n8n 1.x & Workflows, scheduler, webhooks \\
+    BI & Metabase OSS & Dashboard PostgreSQL \\
+    Conteneurisation & Docker Compose v2 & 5 services en une commande \\
+    Logging & Loguru & Logs structurés (INFO/SUCCESS/WARNING) \\
+    OS & Windows 11 / Ubuntu & Développement / production \\
+    \bottomrule
+  \end{tabular}
+  \caption{Environnement technique complet}
+  \label{tab:env}
+\end{table}
+
+\subsection{Architecture Docker Compose}
+
+La plateforme est entièrement conteneurisée. Un seul fichier
+\texttt{docker-compose.yml} orchestre 5 services~:
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    svc/.style={draw=#1!70, fill=#1!15, rounded corners=6pt,
+                minimum width=3.2cm, minimum height=1.4cm,
+                font=\small\bfseries\color{#1}, align=center, inner sep=8pt},
+    port/.style={font=\scriptsize\color{espritGray}},
+    dep/.style={-{Stealth[length=5pt]}, espritGray!50, dashed}
+  ]
+    \node[svc=espritBlue] (api) at (0, 0)
+      {leadgen\_api\\{\small :8000}\\{\scriptsize Python 3.11}};
+    \node[svc=darkGreen] (pg) at (-4, -2.5)
+      {leadgen\_postgres\\{\small :5432}\\{\scriptsize PostgreSQL 15}};
+    \node[svc=espritRed] (redis) at (-1.2, -2.5)
+      {leadgen\_redis\\{\small :6379}\\{\scriptsize Redis 7}};
+    \node[svc=darkBlue] (n8n) at (2, -2.5)
+      {leadgen\_n8n\\{\small :5678}\\{\scriptsize n8n 1.x}};
+    \node[svc=espritGray] (mb) at (5, -2.5)
+      {leadgen\_metabase\\{\small :3000}\\{\scriptsize Metabase OSS}};
+
+    \draw[dep] (api) -- (pg)
+      node[midway, left, font=\scriptsize] {asyncpg};
+    \draw[dep] (api) -- (redis)
+      node[midway, font=\scriptsize] {};
+    \draw[dep] (n8n) -- (pg);
+    \draw[dep] (mb) -- (pg)
+      node[midway, right, font=\scriptsize] {JDBC};
+    \draw[dep] (n8n) |- ++(0, 0.8) -- (api)
+      node[midway, above, font=\scriptsize] {HTTP REST};
+  \end{tikzpicture}
+  \caption{Architecture Docker Compose — 5 services}
+  \label{fig:docker}
+\end{figure}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Implémentation des collecteurs}
+
+\subsection{Gestionnaire de sessions LinkedIn}
+
+Pour éviter la détection par LinkedIn, un pool de 2 comptes est géré par
+\texttt{collectors/session\_manager.py} avec rotation automatique.
+
+\begin{lstlisting}[language=Python3, caption={Rotation de comptes LinkedIn (extrait)}, label=lst:session]
+class SessionManager:
+    async def initialize(self):
+        for email, pwd in zip(self.emails, self.passwords):
+            client = LinkedInClient(email, pwd)
+            if await client.connect():
+                self._clients.append(client)
+                logger.success(f"Compte pret: {email}")
+        logger.info(f"Pool: {len(self._clients)}/{len(self.emails)} actifs")
+
+    def get_client(self) -> LinkedInClient:
+        # Rotation round-robin
+        client = self._clients[self._index % len(self._clients)]
+        self._index += 1
+        return client
+\end{lstlisting}
+
+\subsection{Déduplication dans le pipeline}
+
+La requête de déduplication est au cœur de la fiabilité du système~:
+
+\begin{lstlisting}[language=Python3, caption={Requête de déduplication 30 jours}, label=lst:dedup]
+existing = await conn.fetchval("""
+    SELECT id FROM opportunities
+    WHERE company_id    = $1
+      AND technologies  @> ARRAY[$2]
+      AND opportunity_type = $3
+      AND created_at    > NOW() - INTERVAL '30 days'
+    LIMIT 1
+""", company_id, prospect.technology, opportunity_type)
+
+if existing:
+    return False  # Doublon -- skip
+\end{lstlisting}
+
+\subsection{Collecteur TED EU — gestion du multilinguisme}
+
+\begin{lstlisting}[language=Python3, caption={Extraction multilingue du nom acheteur TED}, label=lst:ted_impl]
+async def _search(self, country_code: str, keyword: str) -> list[TedNotice]:
+    query = f'notice-title="{keyword}" AND buyer-country={country_code}'
+    payload = {"query": query, "fields": TED_FIELDS, "limit": 15}
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(TED_API_URL, json=payload)
+        r.raise_for_status()
+    notices = []
+    for raw in r.json().get("notices", []):
+        buyer = raw.get("buyer-name", {})
+        # Preference : francais puis anglais
+        name = buyer.get("fra") or buyer.get("eng") or "Acheteur EU"
+        title = raw.get("notice-title", {})
+        title_text = title.get("fra") or title.get("eng") or keyword
+        notices.append(TedNotice(buyer_name=name, title=title_text, ...))
+    return notices
+\end{lstlisting}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{API REST FastAPI}
+
+\subsection{Endpoint de collecte asynchrone}
+
+L'endpoint \texttt{POST /api/collect/all} retourne immédiatement pendant que
+la collecte tourne en arrière-plan grâce à \texttt{BackgroundTasks} de FastAPI~:
+
+\begin{lstlisting}[language=Python3, caption={Collecte déclenchée en BackgroundTask}, label=lst:collect_api]
+@router.post("/collect/all")
+async def trigger_full_collect(
+    background_tasks: BackgroundTasks,
+    _: str = Depends(verify_api_key)
+):
+    background_tasks.add_task(_run_all_collectors)
+    return {"status": "started",
+            "message": "Collecte complete demarree en arriere-plan"}
+
+async def _run_all_collectors():
+    from collectors.run_all import run_all
+    await run_all(dry_run=False)
+\end{lstlisting}
+
+\subsection{Endpoint NLP}
+
+\begin{lstlisting}[language=Python3, caption={Classification NLP via API}, label=lst:nlp_api]
+@router.post("/classify")
+async def classify_text(data: ClassifyRequest,
+                        _: str = Depends(verify_api_key)):
+    clf = get_classifier()
+    result = clf.predict(data.text)
+    return {
+        "sector_label":         result.sector_label,
+        "priority_label":       result.priority_label,
+        "sector_confidence":    round(result.sector_confidence, 3),
+        "priority_confidence":  round(result.priority_confidence, 3),
+    }
+\end{lstlisting}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Interfaces utilisateur}
+
+\subsection{Dashboard Metabase}
+
+Metabase se connecte directement à PostgreSQL (host~: \texttt{postgres},
+port~: 5432). Les requêtes recommandées pour l'équipe commerciale~:
+
+\begin{lstlisting}[language=SQL, caption={Top 20 prospects pour l'équipe commerciale}, label=lst:metabase]
+SELECT c.name, o.opportunity_type, o.source_platform,
+       o.country, o.priority_score, o.technologies[1] as tech,
+       o.created_at
+FROM opportunities o
+JOIN companies c ON c.id = o.company_id
+WHERE o.status = 'new'
+ORDER BY o.priority_score DESC
+LIMIT 20;
+\end{lstlisting}
+
+\subsection{Interface Swagger (FastAPI /docs)}
+
+L'API expose une documentation Swagger interactive à l'adresse
+\texttt{http://localhost:8000/docs}, permettant de tester tous les endpoints
+directement depuis le navigateur.
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Résultats et évaluation}
+
+\subsection{Volume de données collectées}
+
+Au 2 mai 2026, après les collectes initiales, la base de données contient
+\textbf{815 prospects} répartis comme suit~:
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar,
+      width=13cm, height=6cm,
+      bar width=22pt,
+      ymin=0, ymax=260,
+      ylabel={Nombre de prospects},
+      xlabel={Source et pays},
+      symbolic x coords={
+        BOAMP-FR,
+        TED-FR, TED-BE, TED-CH, TED-LU,
+        LI-Jobs-FR, LI-Jobs-BE, LI-Jobs-TN, LI-Jobs-LU
+      },
+      xtick=data,
+      x tick label style={font=\scriptsize, rotate=30, anchor=east},
+      nodes near coords,
+      nodes near coords style={font=\scriptsize\bfseries, rotate=90, anchor=west},
+      enlarge x limits=0.08,
+      legend style={at={(0.5,-0.35)}, anchor=north, font=\small, legend columns=2},
+    ]
+      \addplot+[fill=espritBlue!80] coordinates {
+        (BOAMP-FR, 236)
+      };
+      \addplot+[fill=darkGreen!70] coordinates {
+        (TED-FR, 145) (TED-BE, 105) (TED-CH, 98) (TED-LU, 74)
+      };
+      \addplot+[fill=espritRed!70] coordinates {
+        (LI-Jobs-FR, 122) (LI-Jobs-BE, 12)
+        (LI-Jobs-TN, 11) (LI-Jobs-LU, 10)
+      };
+      \legend{BOAMP (b2b\_tender), TED EU (b2b\_tender),
+              LinkedIn Jobs (outsourcing\_signal)}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Volume de prospects collectés par source et par pays (2 mai 2026)}
+  \label{fig:results_volume}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{2.8cm} C{1.5cm} C{1.8cm} C{1.8cm} C{3cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Source} & \textbf{Pays} & \textbf{Prospects} &
+    \textbf{Score moy.} & \textbf{Type signal} \\
+    \midrule
+    BOAMP & FR & 236 & 66 & \texttt{b2b\_tender} \\
+    TED EU & FR & 145 & 65 & \texttt{b2b\_tender} \\
+    TED EU & BE & 105 & 63 & \texttt{b2b\_tender} \\
+    TED EU & CH &  98 & 65 & \texttt{b2b\_tender} \\
+    TED EU & LU &  74 & 66 & \texttt{b2b\_tender} \\
+    LinkedIn Jobs & FR & 122 & 79 & \texttt{outsourcing\_signal} \\
+    LinkedIn Jobs & BE &  12 & 83 & \texttt{outsourcing\_signal} \\
+    LinkedIn Jobs & TN &  11 & 75 & \texttt{outsourcing\_signal} \\
+    LinkedIn Jobs & LU &  10 & 84 & \texttt{outsourcing\_signal} \\
+    LinkedIn Jobs & CH &   2 & 87 & \texttt{outsourcing\_signal} \\
+    \midrule
+    \textbf{TOTAL} & & \textbf{815} & \textbf{$\approx$70} & \\
+    \bottomrule
+  \end{tabular}
+  \caption{Résultats détaillés par source (au 2 mai 2026)}
+  \label{tab:results}
+\end{table}
+
+\subsection{Répartition par niveau de priorité}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xbar,
+      width=11cm, height=4cm,
+      bar width=20pt,
+      xmin=0, xmax=450,
+      xlabel={Nombre de prospects},
+      symbolic y coords={Score 0--59, Score 60--79, Score 80--100},
+      ytick=data,
+      y tick label style={font=\small},
+      nodes near coords,
+      enlarge y limits=0.4,
+    ]
+      \addplot+[fill=espritGray!50] coordinates {(270,{Score 0--59})};
+      \addplot+[fill=espritBlue!70] coordinates {(387,{Score 60--79})};
+      \addplot+[fill=darkGreen!80]  coordinates {(158,{Score 80--100})};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Distribution des prospects par plage de score}
+  \label{fig:score_dist}
+\end{figure}
+
+\subsection{Scores moyens par pays (LinkedIn Jobs)}
+
+Les prospects LinkedIn Jobs affichent des scores significativement plus élevés
+car ils cumulent souvent pays premium (LU/CH) et technologies rares (COBOL).
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar,
+      width=8cm, height=5cm,
+      bar width=20pt,
+      ymin=60, ymax=95,
+      ylabel={Score moyen},
+      symbolic x coords={FR, BE, TN, LU, CH},
+      xtick=data,
+      nodes near coords,
+      nodes near coords style={font=\small\bfseries},
+      enlarge x limits=0.25,
+    ]
+      \addplot+[fill=espritRed!70] coordinates {
+        (FR, 79) (BE, 83) (TN, 75) (LU, 84) (CH, 87)
+      };
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Score moyen par pays — collecteur LinkedIn Jobs}
+  \label{fig:avg_score_country}
+\end{figure}
+
+\subsection{Performances du module NLP}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{5cm} C{2.5cm} C{2.5cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Métrique} & \textbf{Classifieur secteur} & \textbf{Classifieur priorité} \\
+    \midrule
+    Cross-validation 5-fold & \textbf{75.0\%} & -- \\
+    Accuracy (test set) & 70.2\% & 85.0\% \\
+    F1-macro & 68\% & 81\% \\
+    Latence prédiction & $\approx$100\,ms & $\approx$100\,ms \\
+    Taille modèle (.joblib) & $\approx$8\,MB & $\approx$6\,MB \\
+    \bottomrule
+  \end{tabular}
+  \caption{Performances des modèles NLP}
+  \label{tab:nlp_perf}
+\end{table}
+
+\subsection{Performances du pipeline end-to-end}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.4cm,
+    pipstep/.style={draw=darkBlue!60, fill=pipColor, rounded corners=4pt,
+                 minimum width=8cm, minimum height=0.7cm,
+                 font=\small, align=center, inner sep=6pt},
+    time/.style={draw=espritRed!50, fill=lightAmber!30, rounded corners=3pt,
+                 minimum width=2.8cm, minimum height=0.7cm,
+                 font=\scriptsize\bfseries\color{espritRed}, align=center},
+    arr/.style={-{Stealth[length=5pt]}, darkBlue!60, thick}
+  ]
+    \node[pipstep] (s0) at (0,  0.00) {Source externe (API/scraping)};
+    \node[time, right=0.2cm of s0] {0.3s--2.0s};
+    \node[pipstep] (s1) at (0, -0.95) {Collecteur Python (normalisation)};
+    \node[time, right=0.2cm of s1] {$<$5\,ms};
+    \node[pipstep] (s2) at (0, -1.90) {pipeline/ingest.py (upsert + dédup + scoring)};
+    \node[time, right=0.2cm of s2] {\textasciitilde 50\,ms};
+    \node[pipstep] (s3) at (0, -2.85) {PostgreSQL INSERT + indexation};
+    \node[time, right=0.2cm of s3] {\textasciitilde 5\,ms};
+    \node[pipstep] (s4) at (0, -3.80) {/api/classify (NLP optionnel)};
+    \node[time, right=0.2cm of s4] {\textasciitilde 100\,ms};
+    \node[pipstep] (s5) at (0, -4.75) {/api/generate/message (Groq LLM)};
+    \node[time, right=0.2cm of s5] {1--3\,s};
+    \draw[arr] (s0.south) -- (s1.north);
+    \draw[arr] (s1.south) -- (s2.north);
+    \draw[arr] (s2.south) -- (s3.north);
+    \draw[arr] (s3.south) -- (s4.north);
+    \draw[arr] (s4.south) -- (s5.north);
+  \end{tikzpicture}
+  \caption{Latences du pipeline de traitement bout-en-bout}
+  \label{fig:latencies}
+\end{figure}
+
+\subsection{Exemple de prospect généré}
+
+\begin{successbox}[Exemple de sortie --- BNP Paribas COBOL France]
+\textbf{Prospect ingéré~:}
+\begin{itemize}[nosep]
+  \item Entreprise~: BNP Paribas | Technologie~: COBOL | Pays~: France
+  \item Type~: \texttt{outsourcing\_signal} | Score~: \textbf{95/100}
+  \item Secteur NLP~: Finance/Banque (confiance 0.92) | Priorité~: HIGH (0.88)
+\end{itemize}
+\vspace{0.3cm}
+\textbf{Message LinkedIn généré par Groq~:}
+\begin{quote}
+\itshape
+Bonjour [Prénom],
+
+J'ai remarqué que BNP Paribas recrute activement des profils COBOL en ce moment.
+
+Chez Solvinya Group, nous disposons d'une équipe COBOL/Mainframe disponible
+immédiatement — nous intervenons souvent quand le recrutement prend trop de
+temps ou que la mission est trop courte pour justifier un CDI.
+
+Vous travaillez sur une migration ou une maintenance de système legacy~?
+\end{quote}
+\end{successbox}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Tests}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{3.5cm} L{4cm} L{5cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Module testé} & \textbf{Type de test} & \textbf{Résultat} \\
+    \midrule
+    API REST & pytest-asyncio (endpoints) & Health, ingest, classify, generate $\checkmark$ \\
+    NLP Classifier & Accuracy CV-5 & 75.0\% $\geq$ 75\% seuil $\checkmark$ \\
+    Pipeline ingest & Déduplication & Doublon correctement ignoré $\checkmark$ \\
+    Scoring & Calculs unitaires & COBOL/LU = 100 $\checkmark$ \\
+    TED collector & Dry-run & 422 prospects validés $\checkmark$ \\
+    BOAMP collector & Dry-run & 236 prospects validés $\checkmark$ \\
+    LinkedIn B2B & Dry-run & Crédit Agricole, UBCI détectés $\checkmark$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Tableau de synthèse des tests}
+  \label{tab:tests}
+\end{table}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+
+Ce chapitre a démontré la pleine fonctionnalité de la plateforme LeadGen 360+~:
+815 prospects collectés sur 3 sources actives, modèle NLP atteignant le seuil de
+75\%, messages de prospection générés en 1 à 3 secondes. Le système est
+conteneurisé, documenté et automatisé, prêt pour une utilisation en production
+par l'équipe commerciale de Solvinya Group.

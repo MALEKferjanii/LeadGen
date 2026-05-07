@@ -1,0 +1,62 @@
+\chapter*{Introduction générale}
+\markboth{Introduction générale}{}
+\addcontentsline{toc}{chapter}{Introduction générale}
+
+\section*{Contexte}
+
+Dans un marché des services numériques en forte croissance, les entreprises de
+type ESN (Entreprise de Services Numériques) font face à un défi commercial
+récurrent~: identifier rapidement et avec précision les organisations qui ont un
+besoin \textbf{actif et budgété} en prestations IT. Ce besoin peut se manifester
+sous différentes formes~: un appel d'offres public, une demande de proposition
+(RFP), une recherche de partenaire technologique, ou encore — de façon indirecte
+— le recrutement d'un profil IT rare que l'entreprise peine à trouver en CDI.
+
+L'identification manuelle de ces signaux est chronophage, non systématique, et
+fortement dépendante de l'intuition et du réseau personnel des commerciaux.
+Plusieurs heures de veille hebdomadaire sur LinkedIn, le BOAMP, et les journaux
+officiels ne produisent que quelques leads de qualité incertaine.
+
+\section*{Objectifs du projet}
+
+Ce rapport présente \textbf{LeadGen Francophone 360+}, une plateforme de
+génération automatisée de leads B2B IT, développée pour Solvinya Group et
+ciblant les marchés francophone~: France, Belgique, Luxembourg, Suisse, et
+Tunisie.
+
+Les objectifs principaux sont~:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+  \item \textbf{Collecter} automatiquement les signaux B2B depuis 5 sources
+        (LinkedIn Jobs, LinkedIn B2B Posts, BOAMP, TED EU, Malt.fr) ;
+  \item \textbf{Qualifier} chaque prospect avec un score 0--100 basé sur des
+        règles métier déterministes (pays, technologie, secteur) ;
+  \item \textbf{Classifier} le texte des opportunités par secteur et niveau de
+        priorité via un modèle NLP (TF-IDF + LinearSVC) ;
+  \item \textbf{Générer} des messages de prospection personnalisés prêts à envoyer
+        via un LLM (Groq, modèle llama-3.1-8b-instant) ;
+  \item \textbf{Automatiser} l'ensemble du pipeline avec n8n et exposer une API
+        REST FastAPI.
+\end{enumerate}
+
+\section*{Organisation du rapport}
+
+Ce rapport est structuré en quatre chapitres~:
+
+\begin{description}
+  \item[\textbf{Chapitre 1}] expose le cadre du projet~: présentation de Solvinya
+    Group, problématique détaillée, solution proposée et méthodologie de
+    développement adoptée.
+
+  \item[\textbf{Chapitre 2}] présente l'analyse des besoins fonctionnels et
+    non fonctionnels, les cas d'utilisation, et l'architecture globale du système.
+
+  \item[\textbf{Chapitre 3}] décrit la conception technique détaillée~:
+    architecture des collecteurs, pipeline d'ingestion, formule de scoring,
+    module NLP, générateur LLM, schéma de base de données et workflows n8n.
+
+  \item[\textbf{Chapitre 4}] présente la réalisation~: environnement technique,
+    implémentation de chaque composant, tests et résultats obtenus (815 prospects
+    collectés au 2 mai 2026).
+\end{description}
+
+\newpage

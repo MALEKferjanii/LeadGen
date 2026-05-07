@@ -1,0 +1,73 @@
+{
+  "name": "02 — BOAMP RSS Appels d'offres IT",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "hours", "hoursInterval": 12}]}
+      },
+      "name": "Toutes les 12h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "id": "node-1"
+    },
+    {
+      "parameters": {
+        "url": "https://www.boamp.fr/avis/flux-rss/?q=informatique",
+        "options": {}
+      },
+      "name": "Récupérer RSS BOAMP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300],
+      "id": "node-2"
+    },
+    {
+      "parameters": {
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "name": "Parser RSS XML",
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "id": "node-3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/api/classify",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-API-Key", "value": "={{$env.API_SECRET_KEY}}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"text\": \"{{$json.title}} {{$json.description}}\"}",
+        "options": {}
+      },
+      "name": "Classifier appel d'offres",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300],
+      "id": "node-4"
+    }
+  ],
+  "connections": {
+    "Toutes les 12h": {
+      "main": [[{"node": "Récupérer RSS BOAMP", "type": "main", "index": 0}]]
+    },
+    "Récupérer RSS BOAMP": {
+      "main": [[{"node": "Parser RSS XML", "type": "main", "index": 0}]]
+    },
+    "Parser RSS XML": {
+      "main": [[{"node": "Classifier appel d'offres", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "boamp-rss-02"
+}

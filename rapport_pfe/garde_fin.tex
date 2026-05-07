@@ -1,0 +1,77 @@
+\thispagestyle{empty}
+\begin{titlepage}
+
+%% ─── Bandeau ESPRIT ────────────────────────────────────────────────────────────
+\begin{tikzpicture}[remember picture, overlay]
+  %% Bande supérieure bleue
+  \fill[espritBlue] (current page.north west)
+    rectangle ([yshift=-4cm]current page.north east);
+  %% Bande rouge inférieure
+  \fill[espritRed] ([yshift=-4cm]current page.north west)
+    rectangle ([yshift=-4.4cm]current page.north east);
+  %% Bande inférieure bleue
+  \fill[espritBlue] (current page.south west)
+    rectangle ([yshift=2.5cm]current page.south east);
+\end{tikzpicture}
+
+\vspace*{-1cm}
+
+%% ─── En-tête ───────────────────────────────────────────────────────────────────
+\begin{center}
+  {\color{white}\Large\bfseries ESPRIT — École Supérieure Privée d'Ingénierie et de Technologies}\\[4pt]
+  {\color{white}\large Département Génie Logiciel \& Systèmes d'Information}
+\end{center}
+
+\vspace{1.5cm}
+
+%% ─── Cadre titre ───────────────────────────────────────────────────────────────
+\begin{center}
+  \begin{tcolorbox}[
+    colback=lightBlue!30, colframe=espritBlue,
+    boxrule=1.5pt, arc=6pt,
+    left=16pt, right=16pt, top=14pt, bottom=14pt,
+    width=0.9\textwidth
+  ]
+    \centering
+    {\color{espritGray}\large\bfseries Projet de Fin d'Études}\\[8pt]
+    \rule{0.6\textwidth}{0.4pt}\\[14pt]
+    {\color{espritBlue}\Huge\bfseries LeadGen Francophone 360+}\\[10pt]
+    {\color{espritRed}\Large Plateforme automatisée de génération}\\[4pt]
+    {\color{espritRed}\Large de leads B2B IT pour Solvinya Group}\\[12pt]
+    \rule{0.6\textwidth}{0.4pt}\\[8pt]
+    {\color{espritGray}\normalsize Spécialité : Génie Logiciel — Intelligence Artificielle}
+  \end{tcolorbox}
+\end{center}
+
+\vspace{1.0cm}
+
+%% ─── Informations ──────────────────────────────────────────────────────────────
+\begin{center}
+  \begin{tabular}{ll}
+    \textbf{\color{espritBlue}Préparé par :}           & \textbf{Ferjani Malek} \\[6pt]
+    \textbf{\color{espritBlue}Encadrant académique :}  & Encadrant ESPRIT \\[6pt]
+    \textbf{\color{espritBlue}Encadrant entreprise :}  & Équipe Solvinya Group \\[6pt]
+    \textbf{\color{espritBlue}Année universitaire :}   & 2024 -- 2025 \\
+  \end{tabular}
+\end{center}
+
+\vspace{0.8cm}
+
+%% ─── Technologies stack ────────────────────────────────────────────────────────
+\begin{center}
+  \begin{tikzpicture}
+    \node[fill=lightBlue, draw=espritBlue!40, rounded corners=4pt,
+          inner sep=4pt, font=\small\bfseries\color{darkBlue}]
+      {Python 3.11 \quad|\quad FastAPI \quad|\quad PostgreSQL \quad|\quad
+       n8n \quad|\quad Docker \quad|\quad Groq LLM};
+  \end{tikzpicture}
+\end{center}
+
+\vfill
+
+%% ─── Pied de page ──────────────────────────────────────────────────────────────
+\begin{center}
+  {\color{white}\bfseries Mai 2026}
+\end{center}
+
+\end{titlepage}

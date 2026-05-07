@@ -1,0 +1,638 @@
+\chapter{Conception technique}
+\markboth{Chapitre 3}{Conception technique}
+\setcounter{chapter}{3}
+\setcounter{section}{0}
+\minitoc
+\newpage
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+
+Ce chapitre détaille la conception technique de chaque composant de la plateforme~:
+l'architecture des collecteurs, le pipeline d'ingestion avec sa formule de scoring,
+le module NLP, le générateur de messages LLM, le schéma de base de données, et
+les workflows d'automatisation n8n.
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Architecture des collecteurs}
+
+\subsection{Collecteur LinkedIn Jobs — Signal d'externalisation}
+
+\textbf{Fichier~:} \texttt{collectors/linkedin\_hiring.py} \\
+\textbf{Signal produit~:} \texttt{outsourcing\_signal}
+
+\textbf{Logique métier~:} une entreprise non-IT qui recrute activement un
+développeur COBOL possède un projet COBOL actif avec budget. Solvinya peut
+contacter le DSI pour proposer une équipe externalisée immédiatement disponible,
+avant même que le recrutement aboutisse.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.5cm,
+    proc/.style={draw=darkGreen!70, fill=colColor, rounded corners=4pt,
+                 minimum width=8cm, minimum height=0.8cm,
+                 font=\small, align=center, inner sep=6pt},
+    ann/.style={font=\scriptsize\itshape\color{espritGray},
+                text width=4cm, align=left},
+    arr/.style={-{Stealth[length=5pt]}, darkGreen!70, thick}
+  ]
+    \node[proc] (loop1) {BOUCLE externe : technologie (COBOL, SAP, Java, \ldots)};
+    \node[proc, below=0.4cm of loop1] (loop2) {BOUCLE interne : pays (FR, BE, LU, CH, TN)};
+    \node[proc, below=0.4cm of loop2] (search) {\texttt{search\_jobs(keywords, location, limit=30)}};
+    \node[ann, right=0.5cm of search] {Retourne stubs\\(entityUrn seulement)};
+    \node[proc, below=0.4cm of search] (detail) {\texttt{get\_job(job\_id)} → détail complet};
+    \node[proc, below=0.4cm of detail] (extract) {\texttt{\_extract\_company\_info()} → universalName, name};
+    \node[proc, below=0.4cm of extract] (prospect) {\texttt{HiringProspect(company, tech, country, boost)}};
+    \node[proc, below=0.4cm of prospect] (ingest) {\texttt{ingest\_opportunity(type="outsourcing\_signal")}};
+    \node[proc, below=0.4cm of ingest, fill=lightAmber!40, draw=espritRed!40]
+      (sleep) {\texttt{sleep(gauss(4.0, 1.5))} — anti-détection};
+
+    \foreach \a/\b in {loop1/loop2, loop2/search, search/detail, detail/extract,
+                       extract/prospect, prospect/ingest, ingest/sleep}
+      \draw[arr] (\a) -- (\b);
+  \end{tikzpicture}
+  \caption{Flux interne du collecteur LinkedIn Jobs}
+  \label{fig:flow_linkedin_hiring}
+\end{figure}
+
+\subsection{Collecteur LinkedIn B2B — Signaux directs}
+
+\textbf{Fichier~:} \texttt{collectors/linkedin\_b2b.py} \\
+\textbf{Signaux produits~:} \texttt{b2b\_rfp}, \texttt{b2b\_tender},
+  \texttt{b2b\_subcontracting}, \texttt{b2b\_partnership}
+
+\textbf{Contrainte technique~:} l'API LinkedIn non-officielle ne retourne aucun
+résultat avec le filtre \texttt{CONTENT} sur les posts. La stratégie adoptée est
+donc indirecte~: rechercher les \emph{entreprises acheteuses} par secteur, puis
+scanner leurs publications récentes.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.45cm,
+    proc/.style={draw=darkBlue!70, fill=pipColor, rounded corners=4pt,
+                 minimum width=9cm, minimum height=0.8cm,
+                 font=\small, align=center, inner sep=6pt},
+    bad/.style={draw=espritRed!60, fill=warnColor!50, rounded corners=4pt,
+                minimum width=9cm, minimum height=0.7cm,
+                font=\small\itshape, align=center},
+    good/.style={draw=darkGreen!70, fill=colColor, rounded corners=4pt,
+                 minimum width=9cm, minimum height=0.8cm,
+                 font=\small, align=center, inner sep=6pt},
+    arr/.style={-{Stealth[length=5pt]}, darkBlue!70, thick},
+    garr/.style={-{Stealth[length=5pt]}, darkGreen!70, thick}
+  ]
+    \node[bad] (bad1)
+      {\texttt{search\_content("appel d'offres Java")} → \textbf{0 résultats} $\times$};
+
+    \node[proc, below=0.6cm of bad1] (q1)
+      {\texttt{search\_companies("banque crédit financement France", limit=8)}};
+    \node[proc, below=0.4cm of q1] (q2)
+      {Pour chaque entreprise → \texttt{get\_company\_updates\_by\_id(urn\_id, 15)}};
+    \node[proc, below=0.4cm of q2] (q3)
+      {\texttt{\_extract\_post\_text(update)} → texte brut};
+    \node[proc, below=0.4cm of q3] (filter)
+      {Filtre \texttt{\_ESN\_INDICATORS} → exclure les ESN auto-promotionnels};
+    \node[good, below=0.4cm of filter] (score)
+      {\texttt{\_score\_post(text)} → \texttt{(opp\_type, technology, boost)}};
+    \node[good, below=0.4cm of score] (ingest)
+      {\texttt{ingest\_raw\_dict(sig, source\_platform="linkedin\_b2b")}};
+
+    \draw[arr, dashed, espritRed!60] (bad1) -- node[right, font=\scriptsize]
+      {Limitation API} (q1);
+    \foreach \a/\b in {q1/q2, q2/q3, q3/filter, filter/score, score/ingest}
+      \draw[arr] (\a) -- (\b);
+  \end{tikzpicture}
+  \caption{Stratégie et flux du collecteur LinkedIn B2B}
+  \label{fig:flow_linkedin_b2b}
+\end{figure}
+
+Les patterns de détection regex sont détaillés dans le tableau~\vref{tab:b2b_patterns}.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{5.5cm} L{3.5cm} C{1.5cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Expression régulière} & \textbf{Type signal} & \textbf{Boost} \\
+    \midrule
+    \texttt{rfp|request for proposal|ddp} & \texttt{b2b\_rfp} & $+22$ \\
+    \texttt{appel d.offres|marché public|consultation} & \texttt{b2b\_tender} & $+18$ \\
+    \texttt{recherche prestataire|sous-traitan|outsourc} & \texttt{b2b\_subcontracting} & $+16$ \\
+    \texttt{partenariat stratégique|co-traitan|consortium} & \texttt{b2b\_partnership} & $+14$ \\
+    \texttt{sélectionné|retenu|choisi + prestataire} & \texttt{b2b\_tender} & $+12$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Patterns regex de détection B2B et leurs scores de boost}
+  \label{tab:b2b_patterns}
+\end{table}
+
+\subsection{Collecteur BOAMP}
+
+\textbf{Fichier~:} \texttt{collectors/boamp.py} |
+\textbf{API~:} \texttt{boamp-datadila.opendatasoft.com/api/explore/v2.1}
+
+Le BOAMP (Bulletin Officiel des Annonces de Marchés Publics) expose une API REST
+open data gratuite. Pour chacun des 15 mots-clés IT, une requête GET filtre les
+avis dont l'objet contient le terme, triés par date de parution décroissante.
+
+\begin{lstlisting}[language=Python3, caption={Requête BOAMP (extrait)}, label=lst:boamp]
+GET /records
+  ?where=objet like "COBOL"
+  &limit=20
+  &order_by=dateparution desc
+  &select=objet,nomacheteur,url_avis,dateparution,nature_libelle
+\end{lstlisting}
+
+\subsection{Collecteur TED EU}
+
+\textbf{Fichier~:} \texttt{collectors/ted.py} |
+\textbf{API~:} \texttt{api.ted.europa.eu/v3/notices/search} (POST uniquement)
+
+TED (Tenders Electronic Daily) couvre les marchés publics de l'UE. La syntaxe
+\emph{expert query} permet de filtrer simultanément par titre et par pays.
+
+\begin{lstlisting}[language=Python3, caption={Requête TED EU (expert query)}, label=lst:ted]
+POST https://api.ted.europa.eu/v3/notices/search
+{
+  "query": "notice-title=\"SAP\" AND buyer-country=LUX",
+  "fields": ["notice-title", "buyer-name",
+             "publication-date", "notice-url", "cpv-codes"],
+  "limit": 15
+}
+\end{lstlisting}
+
+Points critiques de conception~:
+\begin{itemize}
+  \item Chaque requête couvre \textbf{un seul pays} (boucle Python sur FRA, BEL, LUX, CHE) ;
+  \item Le nom de l'acheteur est un dictionnaire multilingue~: \texttt{buyer-name.get("fra") or .get("eng")} ;
+  \item Les codes pays utilisent la norme ISO alpha-3 : \texttt{FRA}, \texttt{BEL}, \texttt{LUX}, \texttt{CHE}.
+\end{itemize}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Pipeline d'ingestion}
+
+\subsection{Vue d'ensemble — 6 étapes, $\approx$50\,ms/prospect}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    pipstep/.style={draw=darkBlue!60, fill=pipColor, rounded corners=5pt,
+                 minimum width=11.5cm, minimum height=0.9cm,
+                 font=\small\bfseries, align=center, inner sep=8pt},
+    num/.style={draw=espritBlue, fill=espritBlue, circle,
+                minimum size=0.6cm, text=white, font=\small\bfseries},
+    arr/.style={-{Stealth[length=5pt]}, darkBlue!60, thick}
+  ]
+    \foreach \n/\txt/\sub [count=\i from 0] in {
+      1/{Normalisation des champs}/{country\_iso → ISO 2 lettres · tech → taxonomie 50+ · sector → fixe},
+      2/{UPSERT entreprise}/{linkedin\_url comme clé unique → retourne company\_id (UUID)},
+      3/{Déduplication 30 jours}/{même entreprise + même tech + même type dans fenêtre 30j → SKIP},
+      4/{Calcul du score 0--100}/{\texttt{compute\_rule\_score(country, tech, sector, boost)}},
+      5/{Génération du titre contextuel}/{\textit{[Appel d'offres] SAP — Gouvernement LU}},
+      6/{INSERT opportunité}/{status='new' · priority\_score · source\_platform · technologies[]}
+    }{
+      \node[pipstep] (s\i) at (0, {-\i*1.2}) {Étape \n~: \txt \\ {\scriptsize\normalfont\color{espritGray}\sub}};
+      \ifnum \i>0
+        \draw[arr] ($(s\the\numexpr\i-1\relax.south)$) -- ($(s\i.north)$);
+      \fi
+    }
+  \end{tikzpicture}
+  \caption{Les 6 étapes du pipeline \texttt{ingest.py}}
+  \label{fig:pipeline}
+\end{figure}
+
+\subsection{Formule de scoring — 4 dimensions pondérées}
+
+\begin{infobox}[Formule de scoring]
+\[
+  \text{score} = \underbrace{S_{\text{pays}} \times 0.30}_{\text{30\%}}
+               + \underbrace{S_{\text{tech}} \times 0.25}_{\text{25\%}}
+               + \underbrace{S_{\text{secteur}} \times 0.25}_{\text{25\%}}
+               + \underbrace{\frac{\text{boost}}{25} \times 100 \times 0.20}_{\text{20\%}}
+\]
+où chaque $S_i \in [0, 100]$. Le résultat est plafonné à $100$.
+\end{infobox}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xbar stacked,
+      width=13cm, height=4.5cm,
+      bar width=18pt,
+      xmin=0, xmax=100,
+      xlabel={Score / 100},
+      symbolic y coords={React-FR, Python-CH, SAP-BE, COBOL-LU},
+      ytick=data,
+      y tick label style={font=\small},
+      legend style={at={(0.5,-0.35)}, anchor=north, font=\small,
+                    legend columns=4},
+      enlarge y limits=0.3,
+      nodes near coords,
+      nodes near coords align={horizontal},
+      every node near coord/.style={font=\scriptsize\color{white}\bfseries},
+    ]
+      \addplot+[fill=espritBlue!70] coordinates
+        {(27,{COBOL-LU}) (25.5,{SAP-BE})
+         (28.5,{Python-CH}) (27,{React-FR})};
+      \addplot+[fill=darkGreen!70] coordinates
+        {(25,{COBOL-LU}) (21.25,{SAP-BE})
+         (17.5,{Python-CH}) (13.75,{React-FR})};
+      \addplot+[fill=espritRed!70] coordinates
+        {(25,{COBOL-LU}) (17.5,{SAP-BE})
+         (18.75,{Python-CH}) (16.25,{React-FR})};
+      \addplot+[fill=lightAmber!80, draw=espritRed!40] coordinates
+        {(20,{COBOL-LU}) (9.6,{SAP-BE})
+         (12,{Python-CH}) (4,{React-FR})};
+      \legend{Pays (30\%), Tech (25\%), Secteur (25\%), Boost (20\%)}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Décomposition du score pour 4 exemples types}
+  \label{fig:score_decomp}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{C{1.5cm} C{2cm} C{2cm} C{2.5cm} C{1.8cm} C{1.5cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Pays} & \textbf{$S_{\text{pays}}$} &
+    \textbf{Technologie} & \textbf{$S_{\text{tech}}$} &
+    \textbf{Secteur} & \textbf{$S_{\text{sect}}$} \\
+    \midrule
+    Luxembourg & 100 & COBOL & 100 & Finance/Banque & 100 \\
+    Suisse & 95 & Mainframe & 100 & Finance/Assur. & 95 \\
+    France & 90 & SAP & 85 & Finance & 90 \\
+    Belgique & 85 & Java & 80 & IA & 75 \\
+    Tunisie & 65 & ML & 78 & Industrie/RH & 70 \\
+    & & Python/DevOps & 70 & Tech/IA & 65 \\
+    & & Salesforce & 65 & Retail & 50 \\
+    & & React & 55 & Secteur public & 50 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Table des scores par dimension}
+  \label{tab:score_dims}
+\end{table}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Module NLP}
+
+\subsection{Architecture des deux classifieurs}
+
+Le module NLP (\texttt{nlp/classifier.py}) contient deux pipelines
+scikit-learn indépendants, illustrés en figure~\vref{fig:nlp_arch}.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    box/.style={draw=#1!70, fill=#1!15, rounded corners=4pt,
+                minimum width=4.8cm, minimum height=0.8cm,
+                font=\small, align=center, inner sep=6pt},
+    arr/.style={-{Stealth[length=5pt]}, #1!70, thick},
+    node distance=0.5cm
+  ]
+    %% ─ Classifieur Secteur ────────────────────────────────────────────────────
+    \node[box=espritBlue, minimum width=5cm, minimum height=0.6cm,
+          font=\small\bfseries] (in1) at (-3, 6)   {Texte brut FR};
+    \node[box=darkBlue] (tf1a) at (-3, 5)  {TF-IDF word 1--3g\\$(n\_features=50000)$};
+    \node[box=darkBlue] (tf1b) at (-3, 3.9){TF-IDF char 3--5g\\$(n\_features=30000)$};
+    \node[box=darkBlue] (fu1)  at (-3, 2.8){FeatureUnion → concaténation};
+    \node[box=nlpColor, draw=espritRed!60] (svc1) at (-3, 1.7)
+      {LinearSVC + CalibratedClassifierCV};
+    \node[box=darkGreen] (out1) at (-3, 0.6)
+      {\texttt{sector\_label} + confiance};
+
+    \node[draw=espritBlue!40, dashed, rounded corners=6pt,
+          fit=(in1)(tf1a)(tf1b)(fu1)(svc1)(out1),
+          label={[font=\small\bfseries\color{espritBlue}]above:Classifieur Secteur (10 classes)}]
+      {};
+
+    %% ─ Classifieur Priorité ──────────────────────────────────────────────────
+    \node[box=espritRed, minimum width=5cm, minimum height=0.6cm,
+          font=\small\bfseries] (in2) at (3.5, 6)   {Texte brut FR};
+    \node[box=darkBlue] (tf2a) at (3.5, 5)  {TF-IDF word 1--3g};
+    \node[box=darkBlue] (tf2b) at (3.5, 3.9){TF-IDF char 3--5g};
+    \node[box=darkBlue] (fu2)  at (3.5, 2.8){FeatureUnion → concaténation};
+    \node[box=nlpColor, draw=espritRed!60] (svc2) at (3.5, 1.7)
+      {LinearSVC + CalibratedClassifierCV};
+    \node[box=darkGreen] (out2) at (3.5, 0.6)
+      {\texttt{priority\_label} HIGH/MED/LOW};
+
+    \node[draw=espritRed!40, dashed, rounded corners=6pt,
+          fit=(in2)(tf2a)(tf2b)(fu2)(svc2)(out2),
+          label={[font=\small\bfseries\color{espritRed}]above:Classifieur Priorité (3 classes)}]
+      {};
+
+    %% Flèches
+    \foreach \a/\b in {in1/tf1a, tf1a/tf1b, tf1b/fu1, fu1/svc1, svc1/out1}
+      \draw[arr=darkBlue] (\a) -- (\b);
+    \foreach \a/\b in {in2/tf2a, tf2a/tf2b, tf2b/fu2, fu2/svc2, svc2/out2}
+      \draw[arr=darkBlue] (\a) -- (\b);
+  \end{tikzpicture}
+  \caption{Architecture des deux pipelines NLP (TF-IDF + LinearSVC)}
+  \label{fig:nlp_arch}
+\end{figure}
+
+\subsection{Comparaison des modèles}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar,
+      width=11cm, height=5.5cm,
+      bar width=28pt,
+      ymin=60, ymax=82,
+      ylabel={Accuracy CV-5 (\%)},
+      symbolic x coords={TF-IDF (word+char n-grams), Logistic Regression, sentence-transformers},
+      xtick=data,
+      x tick label style={font=\small, align=center, text width=3.5cm},
+      nodes near coords,
+      nodes near coords style={font=\small\bfseries},
+      enlarge x limits=0.3,
+    ]
+      \addplot+[fill=darkGreen!70, draw=darkGreen] coordinates
+        {(TF-IDF (word+char n-grams), 75.0)};
+      \addplot+[fill=espritGray!50, draw=espritGray] coordinates
+        {(Logistic Regression, 71.0)};
+      \addplot+[fill=espritBlue!50, draw=espritBlue] coordinates
+        {(sentence-transformers, 69.4)};
+    \end{axis}
+    %% Ligne seuil
+    \draw[espritRed, dashed, thick] (1.2, 1.65) -- (9.3, 1.65)
+      node[right, font=\small\bfseries\color{espritRed}] {Seuil 75\%};
+  \end{tikzpicture}
+  \caption{Comparaison des approches NLP — corpus de 604 exemples IT}
+  \label{fig:nlp_comparison}
+\end{figure}
+
+\subsection{Distribution des données d'entraînement}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xbar,
+      width=10cm, height=6cm,
+      bar width=14pt,
+      xmin=0, xmax=140,
+      xlabel={Nombre d'exemples},
+      symbolic y coords={Autres, Transport-Retail, Santé,
+                         Secteur-public, Industrie-RH, Tech-IA, Finance-Banque},
+      ytick=data,
+      y tick label style={font=\small},
+      nodes near coords,
+      nodes near coords align={horizontal},
+      enlarge y limits=0.12,
+    ]
+      \addplot+[fill=espritBlue!70] coordinates {
+        (54,{Autres})
+        (60,{Transport-Retail})
+        (70,{Santé})
+        (90,{Secteur-public})
+        (100,{Industrie-RH})
+        (110,{Tech-IA})
+        (120,{Finance-Banque})
+      };
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Répartition des 604 exemples d'entraînement NLP par secteur}
+  \label{fig:nlp_data}
+\end{figure}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Générateur de messages LLM}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.5cm,
+    box/.style={draw=#1!60, fill=#1!15, rounded corners=4pt,
+                minimum width=11cm, minimum height=0.8cm,
+                font=\small, align=center, inner sep=6pt},
+    arr/.style={-{Stealth[length=5pt]}, darkBlue!60, thick}
+  ]
+    \node[box=espritBlue] (api) {\texttt{POST /api/generate/message} · \{"opportunity\_id": "uuid"\}};
+    \node[box=darkGreen, below=0.4cm of api] (read)
+      {Lecture de l'opportunité en DB (company, tech, type, score, sector)};
+    \node[box=darkBlue, below=0.4cm of read] (prompt)
+      {Construction du prompt adapté au \texttt{opportunity\_type}};
+
+    \node[draw=darkBlue!30, rounded corners=4pt, fill=lightBlue!20,
+          below=0.4cm of prompt, minimum width=11cm, inner sep=8pt] (ptypes) {
+      \begin{tabular}{ll}
+        \texttt{outsourcing\_signal} & → \textit{"L'entreprise recrute un dev \{tech\}. Proposer l'externalisation."} \\
+        \texttt{b2b\_tender}         & → \textit{"AO IT détecté. Proposer une réponse complète."} \\
+        \texttt{b2b\_partnership}    & → \textit{"Cherche partenaire. Présenter Solvinya."} \\
+        \texttt{b2b\_rfp}            & → \textit{"RFP publié. Proposer une solution complète."} \\
+      \end{tabular}
+    };
+
+    \node[box=espritBlue, below=0.4cm of ptypes]
+      (groq) {Tentative 1~: \textbf{Groq API} (\texttt{llama-3.1-8b-instant}) — latence 1--3s};
+    \node[box=espritGray, below=0.3cm of groq]
+      (ollama) {Fallback~: \textbf{Ollama local} (\texttt{llama3:8b}) — latence 5--15s};
+    \node[box=darkGreen, below=0.4cm of ollama]
+      (out) {Message LinkedIn 5 lignes · INSERT dans \texttt{leads}};
+
+    \foreach \a/\b in {api/read, read/prompt, prompt/ptypes, ptypes/groq, groq/ollama, ollama/out}
+      \draw[arr] (\a) -- (\b);
+    %% Séparateur Groq/Ollama
+    \draw[espritRed!50, dashed] (-5.6, -4.55) -- (5.5, -4.55)
+      node[right, font=\scriptsize\color{espritRed}] {Si Groq indisponible};
+  \end{tikzpicture}
+  \caption{Pipeline de génération de messages via LLM}
+  \label{fig:llm_pipeline}
+\end{figure}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Schéma de base de données}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    tbl/.style={draw=espritBlue!60, rounded corners=4pt, fill=lightBlue!20},
+    hdr/.style={fill=espritBlue!70, text=white, font=\small\bfseries},
+    row/.style={font=\scriptsize, minimum height=0.5cm},
+    pk/.style={font=\scriptsize\bfseries\color{espritRed}},
+    fk/.style={font=\scriptsize\itshape\color{darkGreen}},
+    rel/.style={-{Stealth[length=5pt]}, espritGray!70, thick}
+  ]
+    %% ── Table companies ───────────────────────────────────────────────────────
+    \matrix (companies) [tbl, matrix of nodes,
+      nodes in empty cells, column sep=0pt, row sep=0pt,
+      nodes={draw=espritBlue!20, minimum width=3.5cm, inner sep=4pt, anchor=west}]
+      at (-4, 3) {
+        |[hdr, minimum width=3.5cm]| companies \\
+        |[pk]| id : UUID PK \\
+        |[row]| name : VARCHAR(255) \\
+        |[row]| linkedin\_url : UNIQUE \\
+        |[row]| country : CHAR(2) \\
+        |[row]| sector : VARCHAR(80) \\
+        |[row]| source : VARCHAR(50) \\
+        |[row]| created\_at : TIMESTAMPTZ \\
+      };
+
+    %% ── Table opportunities ───────────────────────────────────────────────────
+    \matrix (opps) [tbl, matrix of nodes,
+      nodes in empty cells, column sep=0pt, row sep=0pt,
+      nodes={draw=espritBlue!20, minimum width=4.5cm, inner sep=4pt, anchor=west}]
+      at (1, 3) {
+        |[hdr, minimum width=4.5cm]| opportunities \\
+        |[pk]| id : UUID PK \\
+        |[fk]| company\_id : UUID FK \\
+        |[row]| title : VARCHAR(500) \\
+        |[row]| opportunity\_type : VARCHAR(50) \\
+        |[row]| technologies : TEXT{[}{]} \\
+        |[row]| source\_platform : VARCHAR(80) \\
+        |[row]| country : CHAR(2) \\
+        |[row]| priority\_score : SMALLINT \\
+        |[row]| status : VARCHAR(30) \\
+        |[row]| created\_at : TIMESTAMPTZ \\
+      };
+
+    %% ── Table contacts ────────────────────────────────────────────────────────
+    \matrix (contacts) [tbl, matrix of nodes,
+      nodes in empty cells, column sep=0pt, row sep=0pt,
+      nodes={draw=espritBlue!20, minimum width=3.5cm, inner sep=4pt, anchor=west}]
+      at (-4, -2) {
+        |[hdr, minimum width=3.5cm]| contacts \\
+        |[pk]| id : UUID PK \\
+        |[fk]| company\_id : UUID FK \\
+        |[row]| full\_name : VARCHAR(200) \\
+        |[row]| job\_title : VARCHAR(200) \\
+        |[row]| email : VARCHAR(200) \\
+        |[row]| linkedin\_url : VARCHAR(500) \\
+        |[row]| is\_decision\_maker : BOOL \\
+      };
+
+    %% ── Table leads ───────────────────────────────────────────────────────────
+    \matrix (leads) [tbl, matrix of nodes,
+      nodes in empty cells, column sep=0pt, row sep=0pt,
+      nodes={draw=espritBlue!20, minimum width=3.5cm, inner sep=4pt, anchor=west}]
+      at (2, -2) {
+        |[hdr, minimum width=3.5cm]| leads \\
+        |[pk]| id : UUID PK \\
+        |[fk]| opportunity\_id : UUID FK \\
+        |[fk]| contact\_id : UUID FK \\
+        |[row]| generated\_linkedin\_msg \\
+        |[row]| generated\_email \\
+        |[row]| status : VARCHAR(30) \\
+        |[row]| sent\_at : TIMESTAMPTZ \\
+      };
+
+    %% Relations
+    \draw[rel] (companies.east |- companies-2-1) -- ++(0.3,0)
+      |- (opps.west |- opps-3-1);
+    \draw[rel] (companies.east |- companies-2-1) -- ++(0.3,0)
+      |- (contacts.west |- contacts-3-1);
+    \draw[rel] (opps.south |- opps-2-1) -- ++(0,-0.3)
+      |- (leads.east |- leads-3-1);
+    \draw[rel] (contacts.east |- contacts-2-1) -- ++(0.3,0)
+      |- (leads.west |- leads-4-1);
+  \end{tikzpicture}
+  \caption{Schéma entité-relation de la base de données}
+  \label{fig:erd}
+\end{figure}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Conception des workflows n8n}
+
+\subsection{Workflow 04 — Déclencheur collecte (principal)}
+
+Ce workflow est le plus important en production. Il déclenche la collecte complète
+toutes les 12 heures via l'API, et permet également un déclenchement manuel par webhook.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    trig/.style={draw=darkGreen!70, fill=colColor, rounded corners=5pt,
+                 minimum width=3cm, minimum height=1.1cm,
+                 font=\small\bfseries, align=center},
+    proc/.style={draw=darkBlue!70, fill=pipColor, rounded corners=5pt,
+                 minimum width=3.5cm, minimum height=1.1cm,
+                 font=\small, align=center},
+    cond/.style={draw=espritRed!60, fill=warnColor!40, diamond,
+                 minimum width=3cm, minimum height=1cm,
+                 font=\small\bfseries, align=center, aspect=2},
+    ok/.style={draw=darkGreen!70, fill=outColor, rounded corners=5pt,
+               minimum width=3cm, minimum height=0.9cm,
+               font=\small, align=center},
+    err/.style={draw=espritRed!60, fill=warnColor!30, rounded corners=5pt,
+                minimum width=3cm, minimum height=0.9cm,
+                font=\small, align=center},
+    arr/.style={-{Stealth[length=5pt]}, espritGray!70, thick}
+  ]
+    %% Déclencheurs
+    \node[trig] (sched) at (-2, 4.5) {[Sch.] Schedule\\Toutes les 12h};
+    \node[trig] (wh) at (-2, 2.5) {[WH] Webhook\\POST /webhook/collect};
+
+    %% HTTP
+    \node[proc] (http) at (3, 3.5) {[HTTP] HTTP Request\\POST /api/collect/all\\X-API-Key · timeout 10s};
+
+    %% IF
+    \node[cond] (cond) at (7, 3.5) {status\\== "started"?};
+
+    %% Sorties
+    \node[ok] (succ) at (7, 1.5) {[OK] Formater succès\\timestamp · source};
+    \node[err] (fail) at (11, 3.5) {[ERR] Formater erreur\\details};
+
+    %% Flèches
+    \draw[arr] (sched.east) -- ++(0.8,0) |- (http.west);
+    \draw[arr] (wh.east) -- ++(0.8,0) |- (http.west);
+    \draw[arr] (http) -- (cond);
+    \draw[arr] (cond) -- node[left, font=\scriptsize\bfseries] {OUI} (succ);
+    \draw[arr] (cond) -- node[above, font=\scriptsize\bfseries] {NON} (fail);
+  \end{tikzpicture}
+  \caption{Workflow 04 — Déclencheur de collecte automatique}
+  \label{fig:wf04}
+\end{figure}
+
+\subsection{Workflow 03 — Démo live (pipeline bout-en-bout)}
+
+Ce workflow illustre le pipeline complet en 8 étapes en une seule exécution
+manuelle.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.2cm,
+    n/.style={draw=darkBlue!60, fill=pipColor, rounded corners=3pt,
+              minimum width=2.6cm, minimum height=0.8cm,
+              font=\scriptsize\bfseries, align=center, inner sep=4pt},
+    arr/.style={-{Stealth[length=5pt]}, darkBlue!60, thick}
+  ]
+    \node[n] (n1) {$\triangleright$ Manual\\Trigger};
+    \node[n, right=0.3cm of n1] (n2) {Set Params\\COBOL/FR};
+    \node[n, right=0.3cm of n2] (n3) {POST /api\\ingest};
+    \node[n, right=0.3cm of n3] (n4) {Wait 3s};
+    \node[n, right=0.3cm of n4] (n5) {GET /api\\prospects};
+    \node[n, below=0.6cm of n5] (n6) {Extract\\opp\_id};
+    \node[n, left=0.3cm of n6] (n7) {POST /api/\\generate/msg};
+    \node[n, left=0.3cm of n7] (n8) {Set:\\Résultat};
+
+    \foreach \a/\b in {n1/n2, n2/n3, n3/n4, n4/n5, n5/n6, n6/n7, n7/n8}
+      \draw[arr] (\a) -- (\b);
+
+    %% Annotations
+    \node[font=\scriptsize\itshape\color{espritGray}, align=center, below=0.15cm of n3]
+      {BNP Paribas\\COBOL injecté};
+    \node[font=\scriptsize\itshape\color{espritGray}, align=center, below=0.15cm of n7]
+      {Groq LLM\\1--3s};
+    \node[font=\scriptsize\itshape\color{darkGreen}, align=center, below=0.15cm of n8]
+      {score, message,\\lead\_id};
+  \end{tikzpicture}
+  \caption{Workflow 03 — Démo live bout-en-bout (8 nœuds)}
+  \label{fig:wf03}
+\end{figure}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+
+Ce chapitre a présenté la conception détaillée de tous les composants~: les 4
+collecteurs actifs, le pipeline d'ingestion en 6 étapes avec sa formule de scoring
+pondérée, les deux classifieurs NLP indépendants, le générateur de messages LLM,
+le schéma de base de données relationnel, et les 4 workflows n8n. Le chapitre
+suivant présente la réalisation concrète et les résultats obtenus.

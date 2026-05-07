@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeadGen360 — Documentation Technique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* surfaces */
+  --bg:#0b0d12;
+  --bg-1:#11141c;
+  --bg-2:#161a24;
+  --bg-3:#1c2130;
+  --line:#232938;
+  --line-2:#2c3447;
+
+  /* text */
+  --tx:#e6ebf3;
+  --tx-2:#aab2c2;
+  --tx-3:#6f7a8e;
+  --tx-4:#4d5668;
+
+  /* brand + categories */
+  --brand:#2dd4bf;
+  --brand-2:#0ea5a0;
+  --api:#f5a524;
+  --db:#5b8def;
+  --nlp:#a78bfa;
+  --llm:#34d399;
+  --src:#f472b6;
+  --n8n:#ef5777;
+
+  /* tag bg/fg helpers */
+  --r-api: 245,165,36;
+  --r-db: 91,141,239;
+  --r-nlp: 167,139,250;
+  --r-llm: 52,211,153;
+  --r-src: 244,114,182;
+  --r-n8n: 239,87,119;
+  --r-brand: 45,212,191;
+}
+html,body{background:var(--bg);color:var(--tx)}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:14.5px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:'cv11','ss01';
+}
+code,kbd,.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:2px}
+
+/* ─── LAYOUT ─── */
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+.sidebar{
+  position:sticky;top:0;height:100vh;
+  background:var(--bg-1);border-right:1px solid var(--line);
+  overflow-y:auto;padding:22px 0 32px;
+  z-index:50;
+}
+.main-wrap{min-width:0}
+.main{max-width:1080px;margin:0 auto;padding:48px 56px 120px}
+
+/* ─── SIDEBAR ─── */
+.brand{display:flex;align-items:center;gap:12px;padding:0 22px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.brand-mark{
+  width:36px;height:36px;border-radius:9px;
+  background:linear-gradient(135deg,var(--brand) 0%, #67e8d9 60%, #22d3ee 100%);
+  display:grid;place-items:center;color:#06231f;font-weight:800;font-size:15px;
+  box-shadow:0 6px 20px -8px rgba(45,212,191,.55), inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.brand-meta h2{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.brand-meta p{font-size:11.5px;color:var(--tx-3);margin-top:1px;font-weight:500}
+
+.nav-section{padding:14px 22px 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:1.4px;color:var(--tx-4);font-weight:700}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 22px;color:var(--tx-2);font-size:13px;cursor:pointer;
+  transition:color .15s,background .15s,border-color .15s;
+  border-left:2px solid transparent;
+  text-decoration:none;
+}
+.nav-item:hover{color:var(--tx);background:rgba(255,255,255,.02);text-decoration:none}
+.nav-item.active{color:var(--brand);background:rgba(45,212,191,.06);border-left-color:var(--brand)}
+.nav-item .pill{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+  padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--tx-3);font-weight:600
+}
+.nav-sub{padding-left:36px;font-size:12.5px;color:var(--tx-3)}
+
+/* ─── HERO ─── */
+.hero{padding-bottom:32px;border-bottom:1px solid var(--line);margin-bottom:48px}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:5px 11px;border-radius:99px;
+  background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.25);
+  color:var(--brand);font-size:11.5px;font-weight:600;letter-spacing:.4px;
+  margin-bottom:18px;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brand);box-shadow:0 0 10px var(--brand)}
+h1{
+  font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.1;
+  margin-bottom:10px;color:var(--tx);
+}
+h1 .accent{
+  background:linear-gradient(135deg,var(--brand),#7dd3fc 60%,#a78bfa);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.subtitle{color:var(--tx-2);font-size:16px;max-width:640px;line-height:1.55}
+.hero-meta{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:22px
+}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:7px;
+  background:var(--bg-2);border:1px solid var(--line);
+  color:var(--tx-2);font-size:12px;font-weight:500;
+}
+.chip .mono{font-size:11.5px;color:var(--tx-3)}
+
+.kpi-row{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:28px;
+}
+.kpi{
+  background:var(--bg-1);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+}
+.kpi .v{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)}
+.kpi .v small{font-size:13px;color:var(--tx-3);font-weight:500;margin-left:4px}
+.kpi .l{font-size:11.5px;color:var(--tx-3);margin-top:2px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+
+/* ─── SECTIONS ─── */
+section{margin-bottom:72px;scroll-margin-top:24px}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:14px}
+h2{font-size:22px;font-weight:700;letter-spacing:-.01em;color:var(--tx)}
+.section-head p{color:var(--tx-3);font-size:13.5px;max-width:520px;text-align:right}
+h3{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:10px;letter-spacing:-.005em}
+p{color:var(--tx-2)}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--bg-1);border:1px solid var(--line);border-radius:14px;
+  padding:0;margin-bottom:18px;
+  transition:border-color .2s,transform .2s;
+  overflow:hidden;
+}
+.card:hover{border-color:var(--line-2)}
+.card-head{
+  padding:18px 22px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:linear-gradient(180deg,rgba(255,255,255,.015),transparent);
+}
+.card-body{padding:18px 22px}
+.card-body + .card-body{border-top:1px solid var(--line);background:rgba(255,255,255,.012)}
+
+/* method pills */
+.method{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;
+  padding:4px 10px;border-radius:6px;letter-spacing:.5px
+}
+.m-get{background:rgba(91,141,239,.15);color:#93b8ff;border:1px solid rgba(91,141,239,.3)}
+.m-post{background:rgba(245,165,36,.15);color:#fbcf73;border:1px solid rgba(245,165,36,.3)}
+.path{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--tx);font-weight:600}
+.tag{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:99px;
+  font-size:11px;font-weight:600;letter-spacing:.3px;
+}
+.tag-public{background:rgba(91,141,239,.12);color:#93b8ff;border:1px solid rgba(91,141,239,.25)}
+.tag-auth  {background:rgba(245,165,36,.1);color:#f5a524;border:1px solid rgba(245,165,36,.25)}
+.tag-nlp   {background:rgba(167,139,250,.1);color:#c4b5fd;border:1px solid rgba(167,139,250,.25)}
+.tag-llm   {background:rgba(52,211,153,.1);color:#6ee7b7;border:1px solid rgba(52,211,153,.25)}
+.endpoint-desc{color:var(--tx-2);font-size:14px;line-height:1.6;margin-bottom:0}
+
+/* ─── FLOW STEPS ─── */
+.flow{display:grid;grid-template-columns:1fr;margin-top:14px;gap:0}
+.flow-step{
+  display:grid;grid-template-columns:36px 1fr;gap:14px;
+  padding:12px 0;
+  position:relative;
+}
+.flow-step:not(:last-child){border-bottom:1px dashed var(--line)}
+.step-num{
+  width:28px;height:28px;border-radius:8px;
+  background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);
+  color:var(--brand);
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;
+  display:grid;place-items:center;
+}
+.step-content strong{display:block;font-size:13.5px;color:var(--tx);margin-bottom:3px;font-weight:600}
+.step-content span{font-size:13px;color:var(--tx-2);line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:var(--bg-3);padding:1px 6px;border-radius:4px;font-size:12.5px;color:#c4b5fd;border:1px solid var(--line)}
+
+/* ─── FILES ─── */
+.files-block{
+  background:var(--bg-2);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;margin-top:14px;
+}
+.files-block h4{font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx-3);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px}
+.files-block h4::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--brand)}
+.file-chips{display:flex;flex-wrap:wrap;gap:6px}
+.file-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--bg-3);border:1px solid var(--line);
+  color:#bef0e3;font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  padding:4px 9px;border-radius:6px;
+}
+.file-chip svg{width:11px;height:11px;flex-shrink:0;color:var(--tx-4)}
+
+/* ─── SCHEMA GRID ─── */
+.schema-block h4{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx-3);
+  margin-bottom:10px;font-weight:700;
+}
+.schema-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px}
+.schema-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.schema-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.schema-field{
+  background:var(--bg-2);border:1px solid var(--line);border-radius:8px;
+  padding:10px 12px;
+}
+.schema-field .fname{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#7dd3fc;font-weight:600}
+.schema-field .ftype{font-size:11px;color:var(--tx-3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.schema-field .fdesc{font-size:12px;color:var(--tx-2);margin-top:6px;line-height:1.5}
+.badge{
+  display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;
+  font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+}
+.b-req{background:rgba(245,165,36,.15);color:#fbcf73}
+.b-opt{background:rgba(111,122,142,.18);color:var(--tx-2)}
+.b-auto{background:rgba(45,212,191,.15);color:var(--brand)}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+
+/* ─── n8n WORKFLOW ─── */
+.wf{
+  background:var(--bg-1);border:1px solid var(--line);border-radius:14px;
+  margin-bottom:18px;overflow:hidden;transition:border-color .2s
+}
+.wf:hover{border-color:var(--line-2)}
+.wf-head{
+  padding:18px 22px;display:flex;align-items:center;gap:14px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,rgba(239,87,119,.08),transparent 65%);
+}
+.wf-icon{
+  width:42px;height:42px;border-radius:11px;
+  background:rgba(239,87,119,.12);border:1px solid rgba(239,87,119,.3);
+  display:grid;place-items:center;font-size:18px;flex-shrink:0;
+}
+.wf-meta h3{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:3px}
+.wf-trigger{font-size:12px;color:var(--n8n);font-family:'JetBrains Mono',monospace;font-weight:500}
+.wf-id{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--tx-3);background:var(--bg-3);padding:4px 10px;border-radius:6px;border:1px solid var(--line)
+}
+.wf-body{padding:20px 22px}
+
+/* node flow chart */
+.nodeflow{
+  display:flex;align-items:center;flex-wrap:wrap;gap:0;
+  background:var(--bg-2);border:1px solid var(--line);border-radius:10px;
+  padding:16px;margin:14px 0;
+  overflow-x:auto;
+}
+.wfn{
+  background:var(--bg-3);border:1px solid var(--line);border-radius:8px;
+  padding:8px 12px;font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap;
+  display:flex;flex-direction:column;gap:2px;min-width:0;
+}
+.wfn small{font-size:10.5px;color:var(--tx-3);font-weight:500;font-family:'JetBrains Mono',monospace}
+.wfn.trig{border-color:rgba(239,87,119,.4);background:rgba(239,87,119,.08);color:#ffa6b8}
+.wfn.act {border-color:rgba(245,165,36,.4);background:rgba(245,165,36,.08);color:#fbcf73}
+.wfn.api {border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.08);color:#86e7d7}
+.wf-arrow{color:var(--tx-4);padding:0 8px;font-size:14px;display:flex;align-items:center}
+.wf-arrow svg{width:18px;height:18px}
+
+/* tables */
+.spec-table{
+  width:100%;border-collapse:separate;border-spacing:0;margin:14px 0;
+  background:var(--bg-2);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+}
+.spec-table th{
+  background:var(--bg-3);padding:9px 14px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.8px;color:var(--tx-3);font-weight:700
+}
+.spec-table td{padding:10px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--tx-2)}
+.spec-table td:first-child{color:var(--tx);font-weight:500;width:38%}
+.spec-table tr:hover td{background:rgba(255,255,255,.018)}
+
+/* code blocks */
+.codeblock{
+  font-family:'JetBrains Mono',monospace;background:var(--bg-2);border:1px solid var(--line);
+  padding:14px 18px;border-radius:10px;margin:14px 0;
+  color:#86e7d7;font-size:13px;line-height:1.7;overflow-x:auto;
+}
+.codeblock .c{color:var(--tx-4)}
+
+/* ─── GRAPH ─── */
+.graph-wrap{
+  background:var(--bg-1);border:1px solid var(--line);border-radius:14px;
+  position:relative;overflow:hidden;
+}
+.graph-toolbar{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-bottom:1px solid var(--line);background:var(--bg-2);
+}
+.gt-hint{font-size:12px;color:var(--tx-3);display:flex;align-items:center;gap:8px}
+.gt-hint svg{width:14px;height:14px;color:var(--brand)}
+.gt-actions{margin-left:auto;display:flex;gap:6px}
+.gt-btn{
+  background:var(--bg-3);border:1px solid var(--line);color:var(--tx-2);
+  font-size:11.5px;font-weight:500;padding:5px 10px;border-radius:6px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;font-family:inherit;
+}
+.gt-btn:hover{color:var(--tx);border-color:var(--line-2);background:var(--bg-1)}
+
+#graph-svg{display:block;width:100%;height:780px;background:
+  radial-gradient(ellipse at 30% 20%, rgba(45,212,191,.04), transparent 50%),
+  radial-gradient(ellipse at 70% 80%, rgba(167,139,250,.04), transparent 50%),
+  var(--bg-1);
+}
+
+.legend{
+  display:flex;flex-wrap:wrap;gap:14px;padding:12px 18px;
+  border-top:1px solid var(--line);background:var(--bg-2);
+}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--tx-2)}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* popup */
+.node-popup{
+  position:fixed;top:50%;right:32px;transform:translateY(-50%);
+  width:360px;max-width:calc(100vw - 64px);
+  background:var(--bg-1);border:1px solid var(--line-2);border-radius:14px;
+  padding:0;z-index:300;box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.02);
+  display:none;
+}
+.node-popup.visible{display:block;animation:popIn .2s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(-50%) scale(.96)}to{opacity:1;transform:translateY(-50%) scale(1)}}
+.popup-head{
+  padding:16px 20px;border-bottom:1px solid var(--line);
+  display:flex;align-items:flex-start;gap:12px;
+}
+.popup-stripe{width:4px;align-self:stretch;border-radius:99px;background:var(--brand);flex-shrink:0}
+.popup-meta{flex:1;min-width:0}
+.popup-kind{font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx-3);font-weight:700;margin-bottom:3px}
+.popup-title{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.005em}
+.popup-close{
+  cursor:pointer;color:var(--tx-3);width:24px;height:24px;display:grid;place-items:center;
+  border-radius:6px;flex-shrink:0;border:1px solid var(--line);background:var(--bg-2);
+}
+.popup-close:hover{color:var(--tx);background:var(--bg-3)}
+.popup-body{padding:16px 20px}
+.popup-desc{font-size:13px;color:var(--tx-2);line-height:1.6;margin-bottom:14px}
+.popup-files-label{font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx-3);font-weight:700;margin-bottom:8px}
+.popup-files{display:flex;flex-wrap:wrap;gap:5px}
+.popup-file{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  background:var(--bg-3);border:1px solid var(--line);color:#bef0e3;
+  padding:3px 8px;border-radius:5px;
+}
+
+/* ─── NLP / score ─── */
+.nlp-modes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:900px){.nlp-modes{grid-template-columns:1fr}}
+.mode-card{
+  border-radius:12px;padding:18px;
+}
+.mode-card.primary{background:linear-gradient(180deg,rgba(45,212,191,.06),rgba(45,212,191,.015));border:1px solid rgba(45,212,191,.25)}
+.mode-card.fallback{background:linear-gradient(180deg,rgba(245,165,36,.05),rgba(245,165,36,.015));border:1px solid rgba(245,165,36,.25)}
+.mode-card .mt{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-weight:700;font-size:13.5px}
+.mode-card.primary .mt{color:var(--brand)}
+.mode-card.fallback .mt{color:var(--api)}
+.mode-card dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px;line-height:1.6}
+.mode-card dt{color:var(--tx-3);font-weight:500}
+.mode-card dd{color:var(--tx)}
+.mode-card .mono{color:#86e7d7}
+
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+@media(max-width:900px){.score-grid{grid-template-columns:1fr}}
+.score-col{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:14px}
+.score-col .h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.score-col .h-l{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx-3);font-weight:700}
+.score-col .h-w{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--brand);font-weight:600;background:rgba(45,212,191,.1);padding:2px 7px;border-radius:5px}
+.score-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:1px solid var(--line)}
+.score-row:first-child{border-top:none}
+.score-row span:first-child{color:var(--tx)}
+.score-row span:last-child{font-family:'JetBrains Mono',monospace;color:var(--brand);font-weight:600}
+
+/* scrollbar */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--line-2)}
+
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:24px 18px 80px}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .section-head{flex-direction:column;align-items:flex-start;gap:6px}
+  .section-head p{text-align:left}
+  .schema-grid,.schema-grid.cols-3,.schema-grid.cols-4{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">L</div>
+    <div class="brand-meta">
+      <h2>LeadGen360</h2>
+      <p>Documentation Technique · v1.0</p>
+    </div>
+  </div>
+
+  <div class="nav-section">Vue d'ensemble</div>
+  <a class="nav-item" href="#hero">Architecture</a>
+  <a class="nav-item" href="#graph-section">Graphe du Workflow</a>
+
+  <div class="nav-section">API FastAPI</div>
+  <a class="nav-item nav-sub" href="#ep-health">/health <span class="pill">GET</span></a>
+  <a class="nav-item nav-sub" href="#ep-ingest">/api/ingest <span class="pill">POST</span></a>
+  <a class="nav-item nav-sub" href="#ep-classify">/api/classify <span class="pill">POST</span></a>
+  <a class="nav-item nav-sub" href="#ep-generate">/api/generate <span class="pill">POST</span></a>
+  <a class="nav-item nav-sub" href="#ep-prospects">/api/prospects <span class="pill">GET</span></a>
+  <a class="nav-item nav-sub" href="#ep-collect">/api/collect/* <span class="pill">POST</span></a>
+
+  <div class="nav-section">Workflows n8n</div>
+  <a class="nav-item nav-sub" href="#wf-1">01 · LinkedIn Hiring</a>
+  <a class="nav-item nav-sub" href="#wf-2">02 · BOAMP RSS</a>
+  <a class="nav-item nav-sub" href="#wf-3">03 · Live Demo</a>
+  <a class="nav-item nav-sub" href="#wf-4">04 · Collect Trigger</a>
+
+  <div class="nav-section">Pipeline NLP</div>
+  <a class="nav-item nav-sub" href="#nlp-section">Classificateur</a>
+  <a class="nav-item nav-sub" href="#score-section">Formule de score</a>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main-wrap">
+<main class="main">
+
+<!-- HERO -->
+<section id="hero" class="hero">
+  <div class="eyebrow"><span class="dot"></span>Stable · Production · 5 marchés francophones</div>
+  <h1>LeadGen <span class="accent">Francophone 360+</span></h1>
+  <p class="subtitle">
+    Plateforme B2B de génération automatisée de leads IT. Du scraping multi-source
+    à la qualification NLP jusqu'à la génération de messages LLM personnalisés —
+    le tout orchestré par n8n.
+  </p>
+
+  <div class="hero-meta">
+    <span class="chip">Python <span class="mono">3.11</span></span>
+    <span class="chip">FastAPI</span>
+    <span class="chip">PostgreSQL <span class="mono">15</span></span>
+    <span class="chip">sentence-transformers</span>
+    <span class="chip">Groq · Ollama</span>
+    <span class="chip">n8n</span>
+    <span class="chip">Docker Compose</span>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="v">5</div><div class="l">Marchés ciblés</div></div>
+    <div class="kpi"><div class="v">6<small>endpoints</small></div><div class="l">API FastAPI</div></div>
+    <div class="kpi"><div class="v">4<small>workflows</small></div><div class="l">n8n Automation</div></div>
+    <div class="kpi"><div class="v">~225<small>/sem</small></div><div class="l">Appels d'offres BOAMP</div></div>
+  </div>
+</section>
+
+<!-- ═══════════ GRAPH ═══════════ -->
+<section id="graph-section">
+  <div class="section-head">
+    <h2>Graphe du Workflow</h2>
+    <p>Pipeline complet de bout en bout. Cliquez sur un nœud pour voir sa description et les fichiers appelés.</p>
+  </div>
+
+  <div class="graph-wrap">
+    <div class="graph-toolbar">
+      <span class="gt-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        Cliquez un nœud pour le détail
+      </span>
+      <div class="gt-actions">
+        <button class="gt-btn" id="btn-flow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21" fill="currentColor"/></svg>Animer le flux</button>
+      </div>
+    </div>
+    <svg id="graph-svg" viewBox="0 0 1000 780" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--src)"></div>Sources / Collecteurs</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--api)"></div>Endpoints FastAPI</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--db)"></div>Base de données</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--nlp)"></div>Pipeline NLP</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--llm)"></div>Génération LLM</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--n8n)"></div>n8n Automation</div>
+    </div>
+  </div>
+</section>
+
+<!-- popup -->
+<div class="node-popup" id="node-popup" role="dialog" aria-modal="true">
+  <div class="popup-head">
+    <div class="popup-stripe" id="popup-stripe"></div>
+    <div class="popup-meta">
+      <div class="popup-kind" id="popup-kind">NODE</div>
+      <div class="popup-title" id="popup-title"></div>
+    </div>
+    <div class="popup-close" onclick="closePopup()" aria-label="Fermer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </div>
+  </div>
+  <div class="popup-body">
+    <div class="popup-desc" id="popup-desc"></div>
+    <div class="popup-files-label">Fichiers appelés</div>
+    <div class="popup-files" id="popup-files"></div>
+  </div>
+</div>
+
+<!-- ═══════════ API ═══════════ -->
+<section>
+  <div class="section-head">
+    <h2>Endpoints FastAPI</h2>
+    <p>Tous les endpoints sauf <code>/health</code> exigent le header <code>X-API-Key</code>.</p>
+  </div>
+
+  <!-- /health -->
+  <article class="card" id="ep-health">
+    <div class="card-head">
+      <span class="method m-get">GET</span>
+      <span class="path">/health</span>
+      <span class="tag tag-public">Public</span>
+    </div>
+    <div class="card-body">
+      <p class="endpoint-desc">Point de contrôle de disponibilité de l'API. Utilisé par Docker Compose (healthcheck), n8n (avant chaque requête) et les outils de monitoring.</p>
+      <div class="flow">
+        <div class="flow-step"><div class="step-num">1</div><div class="step-content"><strong>Connexion DB</strong><span>Tente un <code>SELECT 1</code> sur PostgreSQL via le pool asyncpg pour vérifier la connectivité.</span></div></div>
+        <div class="flow-step"><div class="step-num">2</div><div class="step-content"><strong>Réponse JSON</strong><span>Retourne <code>{"status":"ok"}</code> si la DB répond, <code>{"status":"degraded"}</code> sinon.</span></div></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="schema-block">
+        <h4>Réponse</h4>
+        <div class="schema-grid cols-4">
+          <div class="schema-field"><div class="fname">status</div><div class="ftype">string</div><div class="fdesc">"ok" | "degraded"</div></div>
+          <div class="schema-field"><div class="fname">database</div><div class="ftype">string</div><div class="fdesc">"ok" | "error"</div></div>
+          <div class="schema-field"><div class="fname">service</div><div class="ftype">string</div><div class="fdesc">Nom du service</div></div>
+          <div class="schema-field"><div class="fname">version</div><div class="ftype">string</div><div class="fdesc">Version de l'API</div></div>
+        </div>
+      </div>
+      <div class="files-block">
+        <h4>Fichiers appelés</h4>
+        <div class="file-chips">
+          <span class="file-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>api/routes/health.py</span>
+          <span class="file-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>db/client.py</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- /api/ingest -->
+  <article class="card" id="ep-ingest">
+    <div class="card-head">
+      <span class="method m-post">POST</span>
+      <span class="path">/api/ingest</span>
+      <span class="tag tag-auth">Auth requise</span>
+    </div>
+    <div class="card-body">
+      <p class="endpoint-desc">Cœur du pipeline d'ingestion. Reçoit un tableau de prospects bruts (collectés par les scrapers ou envoyés par n8n), les normalise, déduplique, calcule un score règle-métier et les insère en base. Seul point d'entrée de données dans le système.</p>
+      <div class="flow">
+        <div class="flow-step"><div class="step-num">1</div><div class="step-content"><strong>Réception du batch</strong><span>Le body contient <code>prospects: [...]</code> — liste de dicts avec les champs du prospect.</span></div></div>
+        <div class="flow-step"><div class="step-num">2</div><div class="step-content"><strong>Normalisation → HiringProspect</strong><span><code>pipeline/ingest.py → ingest_raw_dict()</code> convertit le dict en objet typé.</span></div></div>
+        <div class="flow-step"><div class="step-num">3</div><div class="step-content"><strong>Upsert entreprise</strong><span><code>INSERT … ON CONFLICT(linkedin_url) DO UPDATE</code> — la compagnie est créée ou mise à jour.</span></div></div>
+        <div class="flow-step"><div class="step-num">4</div><div class="step-content"><strong>Déduplication 30 jours</strong><span>Si une opportunité identique (même entreprise + même techno + même type) existe dans les 30 derniers jours, elle est ignorée.</span></div></div>
+        <div class="flow-step"><div class="step-num">5</div><div class="step-content"><strong>Score règle-métier</strong><span><code>scorer_rules.py → compute_rule_score()</code> · pays×0.30 + techno×0.25 + secteur×0.25 + boost×0.20 → score 0–100.</span></div></div>
+        <div class="flow-step"><div class="step-num">6</div><div class="step-content"><strong>INSERT opportunity</strong><span>Insertion en table <code>opportunities</code> avec status=<code>'new'</code> et le score calculé.</span></div></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="schema-block">
+        <h4>Body (request)</h4>
+        <div class="schema-grid">
+          <div class="schema-field"><div class="fname">prospects</div><div class="ftype">list[dict] <span class="badge b-req">requis</span></div><div class="fdesc">Tableau de prospects à ingérer</div></div>
+          <div class="schema-field"><div class="fname">company_name</div><div class="ftype">string <span class="badge b-req">requis</span></div><div class="fdesc">Nom de l'entreprise</div></div>
+          <div class="schema-field"><div class="fname">company_linkedin_url</div><div class="ftype">string <span class="badge b-req">requis</span></div><div class="fdesc">URL LinkedIn — clé de déduplication</div></div>
+          <div class="schema-field"><div class="fname">country_iso</div><div class="ftype">string <span class="badge b-req">requis</span></div><div class="fdesc">FR · BE · LU · CH · TN</div></div>
+          <div class="schema-field"><div class="fname">technology</div><div class="ftype">string <span class="badge b-req">requis</span></div><div class="fdesc">Techno détectée : COBOL, SAP, Java…</div></div>
+          <div class="schema-field"><div class="fname">opportunity_type</div><div class="ftype">string <span class="badge b-opt">optionnel</span></div><div class="fdesc">outsourcing_signal · b2b_rfp · b2b_tender · b2b_subcontracting · b2b_partnership</div></div>
+          <div class="schema-field"><div class="fname">sector_hint</div><div class="ftype">string <span class="badge b-opt">optionnel</span></div><div class="fdesc">Finance/Banque, Tech, Santé…</div></div>
+          <div class="schema-field"><div class="fname">priority_boost</div><div class="ftype">int <span class="badge b-opt">optionnel</span></div><div class="fdesc">Bonus de priorité du collecteur (0–25)</div></div>
+        </div>
+      </div>
+      <div class="files-block">
+        <h4>Fichiers appelés</h4>
+        <div class="file-chips">
+          <span class="file-chip">api/routes/ingest.py</span>
+          <span class="file-chip">pipeline/ingest.py</span>
+          <span class="file-chip">pipeline/scorer_rules.py</span>
+          <span class="file-chip">db/client.py</span>
+          <span class="file-chip">db/queries/companies.py</span>
+          <span class="file-chip">db/queries/opportunities.py</span>
+          <span class="file-chip">collectors/linkedin_hiring.py</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- /api/classify -->
+  <article class="card" id="ep-classify">
+    <div class="card-head">
+      <span class="method m-post">POST</span>
+      <span class="path">/api/classify</span>
+      <span class="tag tag-nlp">NLP</span>
+      <span class="tag tag-auth">Auth requise</span>
+    </div>
+    <div class="card-body">
+      <p class="endpoint-desc">Classifie un texte libre avec le modèle ML embarqué. Produit 3 labels (secteur, techno, priorité) avec leurs scores de confiance, puis fusionne le score règle-métier avec le score NLP. Si <code>opportunity_id</code> est fourni, les labels sont mis à jour directement en base.</p>
+      <div class="flow">
+        <div class="flow-step"><div class="step-num">1</div><div class="step-content"><strong>Vérification modèle</strong><span>Vérifie que <code>app.state.classifier</code> est chargé. Sinon → HTTP 503 (lancer <code>python -m nlp.trainer</code>).</span></div></div>
+        <div class="flow-step"><div class="step-num">2</div><div class="step-content"><strong>Embedding du texte</strong><span><code>classifier.py → _embed()</code> · vecteur 384-dim via <code>paraphrase-multilingual-MiniLM-L12-v2</code> ou TF-IDF 10000-dim en fallback.</span></div></div>
+        <div class="flow-step"><div class="step-num">3</div><div class="step-content"><strong>3 classificateurs parallèles</strong><span>LogisticRegression (ou LinearSVC en TF-IDF) prédit secteur (12 classes), techno (10 classes) et priorité (3 niveaux).</span></div></div>
+        <div class="flow-step"><div class="step-num">4</div><div class="step-content"><strong>Fusion NLP score</strong><span><code>scorer.py → compute_nlp_score()</code> · <code>final = rule_score×0.60 + nlp_score×0.40</code>.</span></div></div>
+        <div class="flow-step"><div class="step-num">5</div><div class="step-content"><strong>Mise à jour DB (si opportunity_id)</strong><span><code>UPDATE opportunities SET sector_label, tech_label, priority_label, nlp_confidence, nlp_score</code>.</span></div></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="split">
+        <div class="schema-block">
+          <h4>Body</h4>
+          <div class="schema-grid" style="grid-template-columns:1fr">
+            <div class="schema-field"><div class="fname">text</div><div class="ftype">string <span class="badge b-req">requis</span></div><div class="fdesc">Texte à classifier (titre + description)</div></div>
+            <div class="schema-field"><div class="fname">opportunity_id</div><div class="ftype">UUID <span class="badge b-opt">optionnel</span></div><div class="fdesc">Si fourni → update DB automatique</div></div>
+          </div>
+        </div>
+        <div class="schema-block">
+          <h4>Réponse</h4>
+          <div class="schema-grid" style="grid-template-columns:1fr">
+            <div class="schema-field"><div class="fname">sector_label</div><div class="ftype">string</div><div class="fdesc">Finance/Banque · Tech · Santé…</div></div>
+            <div class="schema-field"><div class="fname">tech_label</div><div class="ftype">string</div><div class="fdesc">COBOL · SAP · Java · DevOps…</div></div>
+            <div class="schema-field"><div class="fname">priority_label</div><div class="ftype">string</div><div class="fdesc">high · medium · low</div></div>
+            <div class="schema-field"><div class="fname">*_confidence</div><div class="ftype">float [0–1]</div><div class="fdesc">Probabilité de la prédiction</div></div>
+            <div class="schema-field"><div class="fname">nlp_score</div><div class="ftype">int [0–100]</div><div class="fdesc">Score final fusionné</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="files-block">
+        <h4>Fichiers appelés</h4>
+        <div class="file-chips">
+          <span class="file-chip">api/routes/classify.py</span>
+          <span class="file-chip">nlp/classifier.py</span>
+          <span class="file-chip">nlp/scorer.py</span>
+          <span class="file-chip">db/client.py</span>
+          <span class="file-chip">db/queries/opportunities.py</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- /api/generate/message -->
+  <article class="card" id="ep-generate">
+    <div class="card-head">
+      <span class="method m-post">POST</span>
+      <span class="path">/api/generate/message</span>
+      <span class="tag tag-llm">LLM</span>
+      <span class="tag tag-auth">Auth requise</span>
+    </div>
+    <div class="card-body">
+      <p class="endpoint-desc">Génère un message LinkedIn personnalisé (et optionnellement un email) pour une opportunité qualifiée. Groq <code>llama-3.1-8b-instant</code> avec Ollama en fallback local. Le lead généré est immédiatement persisté.</p>
+      <div class="flow">
+        <div class="flow-step"><div class="step-num">1</div><div class="step-content"><strong>Chargement opportunité</strong><span><code>get_opportunity_by_id()</code> récupère l'opportunité avec les données de l'entreprise via JOIN.</span></div></div>
+        <div class="flow-step"><div class="step-num">2</div><div class="step-content"><strong>Génération message LinkedIn</strong><span><code>llm_client.py → generate_linkedin_message()</code> · prompt structuré en français, max 5 lignes, 0 formule générique.</span></div></div>
+        <div class="flow-step"><div class="step-num">3</div><div class="step-content"><strong>Génération email (optionnel)</strong><span>Si <code>generate_email: true</code> → <code>generate_email()</code> émet un email de prospection complet.</span></div></div>
+        <div class="flow-step"><div class="step-num">4</div><div class="step-content"><strong>Fallback Ollama</strong><span>Si Groq est indisponible (429, timeout, erreur réseau), bascule automatique vers Ollama local (<code>mistral</code>).</span></div></div>
+        <div class="flow-step"><div class="step-num">5</div><div class="step-content"><strong>INSERT lead</strong><span><code>create_lead()</code> persiste le message, l'email et lie le lead à l'opportunité + au contact.</span></div></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="split">
+        <div class="schema-block">
+          <h4>Body</h4>
+          <div class="schema-grid" style="grid-template-columns:1fr">
+            <div class="schema-field"><div class="fname">opportunity_id</div><div class="ftype">UUID <span class="badge b-req">requis</span></div><div class="fdesc">ID de l'opportunité cible</div></div>
+            <div class="schema-field"><div class="fname">contact_id</div><div class="ftype">UUID <span class="badge b-opt">optionnel</span></div><div class="fdesc">Lie le lead à un contact spécifique</div></div>
+            <div class="schema-field"><div class="fname">generate_email</div><div class="ftype">bool <span class="badge b-opt">optionnel</span></div><div class="fdesc">Génère aussi un email de prospection</div></div>
+          </div>
+        </div>
+        <div class="schema-block">
+          <h4>Réponse</h4>
+          <div class="schema-grid" style="grid-template-columns:1fr">
+            <div class="schema-field"><div class="fname">lead_id</div><div class="ftype">UUID</div><div class="fdesc">ID du lead créé</div></div>
+            <div class="schema-field"><div class="fname">message</div><div class="ftype">string</div><div class="fdesc">Message LinkedIn généré</div></div>
+            <div class="schema-field"><div class="fname">email</div><div class="ftype">string | null</div><div class="fdesc">Email de prospection (si demandé)</div></div>
+            <div class="schema-field"><div class="fname">score</div><div class="ftype">int</div><div class="fdesc">priority_score de l'opportunité</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="files-block">
+        <h4>Fichiers appelés</h4>
+        <div class="file-chips">
+          <span class="file-chip">api/routes/generate.py</span>
+          <span class="file-chip">automation/llm_client.py</span>
+          <span class="file-chip">automation/message_generator.py</span>
+          <span class="file-chip">automation/email_generator.py</span>
+          <span class="file-chip">db/queries/opportunities.py</span>
+          <span class="file-chip">db/queries/leads.py</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- /api/prospects -->
+  <article class="card" id="ep-prospects">
+    <div class="card-head">
+      <span class="method m-get">GET</span>
+      <span class="path">/api/prospects</span>
+      <span class="tag tag-auth">Auth requise</span>
+    </div>
+    <div class="card-body">
+      <p class="endpoint-desc">Retourne les meilleures opportunités filtrées par score minimum et/ou pays. Utilisé par n8n pour récupérer les prospects après collecte, et par Metabase pour les dashboards en temps réel.</p>
+      <div class="schema-block" style="margin-top:14px">
+        <h4>Query params</h4>
+        <div class="schema-grid cols-3">
+          <div class="schema-field"><div class="fname">min_score</div><div class="ftype">int <span class="badge b-opt">défaut 0</span></div><div class="fdesc">Score minimum (0–100) pour filtrer</div></div>
+          <div class="schema-field"><div class="fname">country</div><div class="ftype">string <span class="badge b-opt">optionnel</span></div><div class="fdesc">FR · BE · LU · CH · TN</div></div>
+          <div class="schema-field"><div class="fname">limit</div><div class="ftype">int <span class="badge b-opt">défaut 20</span></div><div class="fdesc">Nombre max de résultats</div></div>
+        </div>
+      </div>
+      <div class="files-block">
+        <h4>Fichiers appelés</h4>
+        <div class="file-chips">
+          <span class="file-chip">api/routes/generate.py</span>
+          <span class="file-chip">db/queries/opportunities.py</span>
+          <span class="file-chip">db/client.py</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- /api/collect/* -->
+  <article class="card" id="ep-collect">
+    <div class="card-head" style="flex-direction:column;align-items:flex-start;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="method m-post">POST</span>
+        <span class="path">/api/collect/linkedin</span>
+        <span class="tag tag-auth">Auth requise</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="method m-post">POST</span>
+        <span class="path">/api/collect/all</span>
+        <span class="tag tag-auth">Auth requise</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <p class="endpoint-desc">Déclenche la collecte de données en <strong>arrière-plan</strong> (FastAPI BackgroundTasks). La réponse est immédiate (<code>{"status":"started"}</code>) — la collecte continue ensuite de façon asynchrone. Typiquement appelés par les webhooks n8n (Workflow 04).</p>
+      <div class="flow">
+        <div class="flow-step"><div class="step-num">1</div><div class="step-content"><strong>/collect/linkedin — Collecte LinkedIn</strong><span>Lance en parallèle <code>LinkedInB2BCollector</code> (posts RFP/AO) + <code>collect_hiring_signals()</code> (offres). Auth via cookies dans <code>SessionManager</code>.</span></div></div>
+        <div class="flow-step"><div class="step-num">2</div><div class="step-content"><strong>/collect/all — Collecte complète</strong><span><code>run_all.py</code> orchestre les 5 collecteurs : LinkedIn, LinkedIn B2B, BOAMP, TED, Malt. Chaque collecteur appelle <code>ingest_opportunity()</code>.</span></div></div>
+        <div class="flow-step"><div class="step-num">3</div><div class="step-content"><strong>Délai anti-détection</strong><span>LinkedIn uniquement : délai gaussien <code>random.gauss(4.0, 1.5)s</code> entre chaque requête + rotation de 3 comptes.</span></div></div>
+      </div>
+      <div class="files-block">
+        <h4>Fichiers appelés</h4>
+        <div class="file-chips">
+          <span class="file-chip">api/routes/collect.py</span>
+          <span class="file-chip">collectors/run_all.py</span>
+          <span class="file-chip">collectors/session_manager.py</span>
+          <span class="file-chip">collectors/linkedin_hiring.py</span>
+          <span class="file-chip">collectors/linkedin_b2b.py</span>
+          <span class="file-chip">collectors/boamp.py</span>
+          <span class="file-chip">collectors/ted.py</span>
+          <span class="file-chip">collectors/malt.py</span>
+          <span class="file-chip">pipeline/ingest.py</span>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ═══════════ N8N WORKFLOWS ═══════════ -->
+<section>
+  <div class="section-head">
+    <h2>Workflows n8n</h2>
+    <p>4 workflows orchestrent le pipeline. Chaque workflow communique avec FastAPI via HTTP.</p>
+  </div>
+
+  <!-- WF 01 -->
+  <div class="wf" id="wf-1">
+    <div class="wf-head">
+      <div class="wf-icon">⏰</div>
+      <div class="wf-meta">
+        <h3>LinkedIn Hiring Signal Collector</h3>
+        <div class="wf-trigger">ScheduleTrigger · toutes les 6 heures</div>
+      </div>
+      <div class="wf-id">WF · 01</div>
+    </div>
+    <div class="wf-body">
+      <p><strong>Objectif :</strong> Détecter les entreprises non-IT qui recrutent des développeurs IT (signal d'externalisation). Une banque qui recrute 3 devs COBOL est un prospect Solvinya.</p>
+      <div class="nodeflow">
+        <div class="wfn trig">⏰ Cron 6h</div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">📋 Set Params<br><small>tech, pays, limit</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn api">POST /api/collect/linkedin</div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">📊 Log résultats</div>
+      </div>
+      <table class="spec-table">
+        <tr><th>Élément</th><th>Valeur</th></tr>
+        <tr><td>Fréquence</td><td>Toutes les 6 heures</td></tr>
+        <tr><td>Technologies ciblées</td><td>COBOL, SAP, Java, Mainframe, Python, DevOps</td></tr>
+        <tr><td>Marchés</td><td>FR, BE, LU, CH, TN</td></tr>
+        <tr><td>Volume estimé</td><td>~30 offres par technologie par run</td></tr>
+        <tr><td>Anti-détection</td><td>Délai gaussien (μ=4s σ=1.5s) · rotation 3 comptes</td></tr>
+        <tr><td>Endpoint appelé</td><td><code>POST /api/collect/linkedin</code></td></tr>
+      </table>
+      <p style="margin-top:8px;font-size:13px;color:var(--tx-3)"><strong style="color:var(--tx-2)">Pourquoi 6h ?</strong> Des runs ~00h, 06h, 12h, 18h couvrent les publications LinkedIn matinales et après-midi, maximisant la détection.</p>
+    </div>
+  </div>
+
+  <!-- WF 02 -->
+  <div class="wf" id="wf-2">
+    <div class="wf-head">
+      <div class="wf-icon">📡</div>
+      <div class="wf-meta">
+        <h3>BOAMP RSS Feed Poller</h3>
+        <div class="wf-trigger">RSS polling · nouvelles entrées détectées</div>
+      </div>
+      <div class="wf-id">WF · 02</div>
+    </div>
+    <div class="wf-body">
+      <p><strong>Objectif :</strong> Ingérer en temps réel les appels d'offres publiés sur BOAMP. Données libres, structurées, sans authentification — zéro risque d'anti-scraping.</p>
+      <div class="nodeflow">
+        <div class="wfn trig">📡 RSS Trigger<br><small>BOAMP Feed URL</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">🔍 Filter<br><small>Keywords IT</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">🔄 Transform<br><small>→ prospect dict</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn api">POST /api/ingest</div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">📊 Log</div>
+      </div>
+      <table class="spec-table">
+        <tr><th>Élément</th><th>Valeur</th></tr>
+        <tr><td>Source</td><td>BOAMP Open Data API · données officielles gouvernement français</td></tr>
+        <tr><td>Volume</td><td>~215–236 appels d'offres IT par semaine</td></tr>
+        <tr><td>Authentification</td><td>Aucune — API publique</td></tr>
+        <tr><td>Filtre</td><td>Mots-clés IT : COBOL, SAP, Java, Python, Mainframe, DevOps…</td></tr>
+        <tr><td>opportunity_type</td><td><code>b2b_tender</code></td></tr>
+        <tr><td>Pays couverts</td><td>France uniquement</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- WF 03 -->
+  <div class="wf" id="wf-3">
+    <div class="wf-head">
+      <div class="wf-icon">▶️</div>
+      <div class="wf-meta">
+        <h3>Live Demo Soutenance · 90 s</h3>
+        <div class="wf-trigger">Manuel · bouton Execute</div>
+      </div>
+      <div class="wf-id">WF · 03</div>
+    </div>
+    <div class="wf-body">
+      <p><strong>Objectif :</strong> Démonstration live du pipeline complet en 90 secondes pour la soutenance PFE. Injecte un prospect fictif, attend la classification NLP, génère un message LinkedIn personnalisé visible en temps réel dans n8n.</p>
+      <div class="nodeflow">
+        <div class="wfn trig">▶️ Manuel</div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">📝 Set Params<br><small>COBOL · FR · boost=25</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn api">POST /api/ingest<br><small>BNP Paribas test</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">⏳ Wait 3s</div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn api">GET /api/prospects<br><small>score≥70</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn api">POST /api/generate/message</div>
+      </div>
+      <table class="spec-table">
+        <tr><th>Étape</th><th>Temps</th><th>Action</th></tr>
+        <tr><td>Paramétrage</td><td>0–5 s</td><td>Définit technologie=COBOL, pays=FR, boost=25</td></tr>
+        <tr><td>Ingest</td><td>5–15 s</td><td>Insère un prospect BNP Paribas fictif, score ~95/100</td></tr>
+        <tr><td>Wait</td><td>15–18 s</td><td>Attend 3 secondes (la classification est synchrone)</td></tr>
+        <tr><td>Prospects</td><td>18–25 s</td><td>Récupère les top opportunités (score ≥ 70)</td></tr>
+        <tr><td>Génération</td><td>25–85 s</td><td>Groq llama-3.1-8b génère le message LinkedIn</td></tr>
+        <tr><td>Affichage</td><td>85–90 s</td><td>Le message s'affiche dans le nœud n8n output</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- WF 04 -->
+  <div class="wf" id="wf-4">
+    <div class="wf-head">
+      <div class="wf-icon">🌐</div>
+      <div class="wf-meta">
+        <h3>Manual Collection Webhook Trigger</h3>
+        <div class="wf-trigger">Webhook HTTP POST · déclenchement externe</div>
+      </div>
+      <div class="wf-id">WF · 04</div>
+    </div>
+    <div class="wf-body">
+      <p><strong>Objectif :</strong> Permettre à n'importe quel système externe (Metabase, CLI, Slack bot, cron OS) de déclencher une collecte complète via un simple HTTP POST sur le webhook n8n — sans accès direct à FastAPI.</p>
+      <div class="nodeflow">
+        <div class="wfn trig">🌐 Webhook<br><small>POST /webhook/collect</small></div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn api">POST /api/collect/all</div>
+        <div class="wf-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        <div class="wfn act">📊 Return Summary<br><small>{linkedin, boamp, ted…}</small></div>
+      </div>
+      <table class="spec-table">
+        <tr><th>Élément</th><th>Valeur</th></tr>
+        <tr><td>URL du webhook</td><td><code>http://n8n:5678/webhook/collect</code></td></tr>
+        <tr><td>Méthode</td><td>POST · pas de body requis</td></tr>
+        <tr><td>Authentification n8n</td><td>Basic Auth (admin / admin123)</td></tr>
+        <tr><td>Action déclenchée</td><td><code>POST /api/collect/all</code> · 5 collecteurs en background</td></tr>
+        <tr><td>Réponse</td><td>Résumé : <code>{linkedin, boamp, ted}</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ NLP ═══════════ -->
+<section id="nlp-section">
+  <div class="section-head">
+    <h2>Pipeline NLP — Classificateur</h2>
+    <p>Deux modes selon la disponibilité de <code>sentence-transformers</code>.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="nlp-modes">
+        <div class="mode-card primary">
+          <div class="mt">● Mode primaire — Sentence Transformers</div>
+          <dl>
+            <dt>Modèle</dt><dd class="mono">paraphrase-multilingual-MiniLM-L12-v2</dd>
+            <dt>Embedding</dt><dd>Vecteur 384-dim normalisé</dd>
+            <dt>Classificateurs</dt><dd>3× LogisticRegression (C=1.0, max_iter=1000)</dd>
+            <dt>Avantage</dt><dd>Multilingue (FR, EN, DE…) · haute qualité sémantique</dd>
+          </dl>
+        </div>
+        <div class="mode-card fallback">
+          <div class="mt">● Mode fallback — TF-IDF</div>
+          <dl>
+            <dt>Activation</dt><dd class="mono">LEADGEN_USE_TFIDF=1</dd>
+            <dt>Features</dt><dd>Word n-gram (1–3) + char n-gram (3–5) · 10 000 total</dd>
+            <dt>Classificateurs</dt><dd>3× LinearSVC → CalibratedClassifierCV</dd>
+            <dt>Avantage</dt><dd>100 % offline · aucun modèle à télécharger</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="files-block">
+        <h4>Fichiers du pipeline NLP</h4>
+        <div class="file-chips">
+          <span class="file-chip">nlp/classifier.py</span>
+          <span class="file-chip">nlp/trainer.py</span>
+          <span class="file-chip">nlp/evaluator.py</span>
+          <span class="file-chip">nlp/scorer.py</span>
+          <span class="file-chip">nlp/data/training_data.py</span>
+          <span class="file-chip">nlp/models/*.joblib</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SCORE ═══════════ -->
+<section id="score-section">
+  <div class="section-head">
+    <h2>Formule de Score</h2>
+    <p>Score déterministe règle-métier (Phase 1) puis fusion NLP (Phase 2).</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>Phase 1 — Score règle-métier</h3>
+      <div class="codeblock">
+score = country_score    × 0.30
+      + technology_score × 0.25
+      + sector_score     × 0.25
+      + priority_boost   × 0.20   <span class="c">// → 0–100</span>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-col">
+          <div class="h"><div class="h-l">Pays</div><div class="h-w">×0.30</div></div>
+          <div class="score-row"><span>LU</span><span>100</span></div>
+          <div class="score-row"><span>CH</span><span>95</span></div>
+          <div class="score-row"><span>FR</span><span>90</span></div>
+          <div class="score-row"><span>BE</span><span>85</span></div>
+          <div class="score-row"><span>TN</span><span>65</span></div>
+        </div>
+        <div class="score-col">
+          <div class="h"><div class="h-l">Technologie</div><div class="h-w">×0.25</div></div>
+          <div class="score-row"><span>COBOL / Mainframe</span><span>100</span></div>
+          <div class="score-row"><span>SAP</span><span>85</span></div>
+          <div class="score-row"><span>Java</span><span>80</span></div>
+          <div class="score-row"><span>ML / Data Eng.</span><span>75–78</span></div>
+          <div class="score-row"><span>React</span><span>55</span></div>
+        </div>
+        <div class="score-col">
+          <div class="h"><div class="h-l">Secteur</div><div class="h-w">×0.25</div></div>
+          <div class="score-row"><span>Finance / Banque</span><span>100</span></div>
+          <div class="score-row"><span>Finance / Assurance</span><span>95</span></div>
+          <div class="score-row"><span>Finance</span><span>90</span></div>
+          <div class="score-row"><span>Tech / IA</span><span>72</span></div>
+          <div class="score-row"><span>Retail</span><span>50</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <h3>Phase 2 — Fusion NLP</h3>
+      <div class="codeblock">
+nlp_base  = PRIORITY_TO_SCORE[priority_label]   <span class="c">// high=85, medium=55, low=25</span>
+boost     = SECTOR_BOOST[sector_label]
+nlp_score = (nlp_base + boost) × confidence
+final     = rule_score × 0.60 + nlp_score × 0.40
+      </div>
+      <div class="files-block">
+        <h4>Fichiers</h4>
+        <div class="file-chips">
+          <span class="file-chip">pipeline/scorer_rules.py</span>
+          <span class="file-chip">nlp/scorer.py</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+</div>
+
+<!-- ═══════════ GRAPH SCRIPT ═══════════ -->
+<script>
+/* ─── Smooth scroll + active link tracking ────────────────── */
+document.querySelectorAll('.nav-item[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) window.scrollTo({top: el.offsetTop - 16, behavior:'smooth'});
+  });
+});
+
+const navLinks = [...document.querySelectorAll('.nav-item[href^="#"]')];
+const sectionIds = navLinks.map(a => a.getAttribute('href').slice(1));
+const targets = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(en => {
+    if (en.isIntersecting) {
+      const id = en.target.id;
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+id));
+    }
+  });
+}, {rootMargin: '-30% 0px -60% 0px', threshold: 0});
+targets.forEach(t => io.observe(t));
+
+/* ─── GRAPH NODES ─────────────────────────────────────────── */
+const COLORS = {
+  src:   '#f472b6',
+  api:   '#f5a524',
+  db:    '#5b8def',
+  nlp:   '#a78bfa',
+  llm:   '#34d399',
+  n8n:   '#ef5777',
+  meta:  '#22d3ee'
+};
+
+const NW = 200, NH = 56;
+const COLX = [60, 300, 540, 780];
+const ROWY = {
+  trig:    60,
+  collect: 200,
+  ingest:  340,
+  classify:480,
+  generate:480,
+  db:      620,
+  metabase:720
+};
+
+const nodes = [
+  { id:'sources',     x:COLX[1], y:ROWY.trig,   color:COLORS.src,
+    kind:'Sources externes', label:'Sources de données',
+    icon:'🌐',
+    desc:"LinkedIn Jobs API, LinkedIn Posts, BOAMP (France), TED EU (BE/LU/CH), Malt.fr.",
+    files:['Externe — pas de fichier Python']},
+  { id:'n8n',         x:COLX[3], y:ROWY.trig,   color:COLORS.n8n,
+    kind:'Automation', label:'n8n Automation',
+    icon:'⚙️',
+    desc:"4 workflows automatisent les déclenchements : collecte, ingestion, démo, webhook externe.",
+    files:['n8n_workflows/01_linkedin_hiring.json','n8n_workflows/02_boamp_rss.json','n8n_workflows/03_live_demo.json','n8n_workflows/04_collect_trigger.json']},
+  { id:'collectors',  x:COLX[1], y:ROWY.collect, color:COLORS.src,
+    kind:'Pipeline', label:'Collecteurs',
+    icon:'🛰️',
+    desc:"Scrapers spécialisés par source. Chaque collecteur retourne des prospects normalisés et appelle directement ingest_opportunity().",
+    files:['collectors/linkedin_hiring.py','collectors/linkedin_b2b.py','collectors/boamp.py','collectors/ted.py','collectors/malt.py','collectors/session_manager.py','collectors/run_all.py','collectors/base.py']},
+  { id:'ep-collect',  x:COLX[3], y:ROWY.collect, color:COLORS.api,
+    kind:'Endpoint FastAPI', label:'POST /api/collect/*',
+    icon:'⚡',
+    desc:"Déclenche la collecte en arrière-plan via FastAPI BackgroundTasks. Réponse immédiate, collecte asynchrone.",
+    files:['api/routes/collect.py','api/main.py']},
+  { id:'ep-ingest',   x:COLX[2], y:ROWY.ingest, color:COLORS.api,
+    kind:'Endpoint FastAPI', label:'POST /api/ingest',
+    icon:'📥',
+    desc:"Normalise, déduplique (30j) et calcule le score règle-métier. Point d'entrée unique pour toutes les données.",
+    files:['api/routes/ingest.py','pipeline/ingest.py','pipeline/scorer_rules.py']},
+  { id:'ep-classify', x:COLX[0], y:ROWY.classify, color:COLORS.nlp,
+    kind:'Endpoint NLP', label:'POST /api/classify',
+    icon:'🧠',
+    desc:"Classifie le texte en secteur, techno et priorité via le modèle ML. Fusionne avec le score règle-métier.",
+    files:['api/routes/classify.py','nlp/classifier.py','nlp/scorer.py']},
+  { id:'nlp',         x:COLX[0], y:ROWY.db,     color:COLORS.nlp,
+    kind:'NLP Engine', label:'NLP Engine',
+    icon:'🔬',
+    desc:"paraphrase-multilingual-MiniLM-L12-v2 (384-dim) + 3× LogisticRegression. Fallback TF-IDF 10000-dim si offline.",
+    files:['nlp/classifier.py','nlp/data/training_data.py','nlp/models/sector_clf.joblib','nlp/models/tech_clf.joblib','nlp/models/priority_clf.joblib','nlp/models/embedding_mode.joblib']},
+  { id:'ep-generate', x:COLX[3], y:ROWY.classify, color:COLORS.llm,
+    kind:'Endpoint LLM', label:'POST /api/generate/message',
+    icon:'✨',
+    desc:"Génère un message LinkedIn et optionnellement un email via LLM. Groq API avec fallback Ollama local.",
+    files:['api/routes/generate.py','automation/llm_client.py','automation/message_generator.py','automation/email_generator.py']},
+  { id:'db-opp',      x:COLX[2], y:ROWY.db,     color:COLORS.db,
+    kind:'Base de données', label:'DB · opportunities',
+    icon:'🗃️',
+    desc:"Table PostgreSQL centrale. Stocke toutes les opportunités avec leur score, type, statut et métadonnées.",
+    files:['db/client.py','db/queries/companies.py','db/queries/opportunities.py','db/init.sql']},
+  { id:'leads',       x:COLX[3], y:ROWY.db,     color:COLORS.db,
+    kind:'Base de données', label:'DB · leads',
+    icon:'📨',
+    desc:"Stocke les messages LinkedIn et emails générés, liés à l'opportunité et au contact. Consultable dans Metabase.",
+    files:['db/queries/leads.py','db/queries/contacts.py','db/client.py']},
+  { id:'metabase',    x:COLX[2], y:ROWY.metabase, color:COLORS.meta,
+    kind:'Visualisation', label:'Metabase Dashboard',
+    icon:'📊',
+    desc:"Dashboards BI temps réel. Connexion JDBC directe à PostgreSQL. KPIs, top prospects, distribution pays/secteur.",
+    files:['Connexion JDBC native — pas de fichier Python']}
+];
+
+const edges = [
+  {from:'sources',  to:'collectors', label:'données brutes'},
+  {from:'sources',  to:'ep-collect', label:''},
+  {from:'n8n',      to:'ep-ingest',  label:'webhook'},
+  {from:'n8n',      to:'ep-collect', label:'HTTP trigger'},
+  {from:'ep-collect',to:'collectors',label:'BackgroundTask'},
+  {from:'collectors',to:'ep-ingest', label:'prospects[]'},
+  {from:'ep-ingest',to:'db-opp',     label:'INSERT'},
+  {from:'db-opp',   to:'ep-classify',label:'auto classify'},
+  {from:'ep-classify',to:'nlp',      label:'embed → predict'},
+  {from:'nlp',      to:'ep-classify',label:'labels + conf'},
+  {from:'ep-classify',to:'db-opp',   label:'UPDATE labels'},
+  {from:'db-opp',   to:'ep-generate',label:'opportunity data'},
+  {from:'ep-generate',to:'leads',    label:'INSERT lead'},
+  {from:'leads',    to:'metabase',   label:'JDBC'},
+  {from:'db-opp',   to:'metabase',   label:'JDBC'}
+];
+
+const NS = 'http://www.w3.org/2000/svg';
+
+function el(name, attrs, parent) {
+  const e = document.createElementNS(NS, name);
+  if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+function center(n) { return {x: n.x + NW/2, y: n.y + NH/2}; }
+
+function edgePath(a, b) {
+  const ca = center(a), cb = center(b);
+  const dx = cb.x - ca.x, dy = cb.y - ca.y;
+  let sx, sy, ex, ey;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    if (dx >= 0) { sx = a.x + NW; ex = b.x; }
+    else         { sx = a.x;      ex = b.x + NW; }
+    sy = ca.y; ey = cb.y;
+  } else {
+    if (dy >= 0) { sy = a.y + NH; ey = b.y; }
+    else         { sy = a.y;      ey = b.y + NH; }
+    sx = ca.x; ex = cb.x;
+  }
+  const c1x = (sx + ex) / 2, c1y = sy;
+  const c2x = (sx + ex) / 2, c2y = ey;
+  return {
+    d: `M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${ex},${ey}`,
+    sx, sy, ex, ey
+  };
+}
+
+function renderGraph() {
+  const svg = document.getElementById('graph-svg');
+  svg.innerHTML = '';
+
+  const defs = el('defs', null, svg);
+  const colorSet = new Set(nodes.map(n => n.color));
+  colorSet.add('#3a4459');
+  colorSet.forEach(c => {
+    const id = 'arr-' + c.replace('#','');
+    const m = el('marker', {id, markerWidth:8, markerHeight:8, refX:7, refY:3, orient:'auto', markerUnits:'strokeWidth'}, defs);
+    el('path', {d:'M0,0 L0,6 L8,3 z', fill:c, opacity:'0.85'}, m);
+  });
+  const f = el('filter', {id:'softGlow', x:'-50%', y:'-50%', width:'200%', height:'200%'}, defs);
+  el('feGaussianBlur', {stdDeviation:'2.4', result:'b'}, f);
+  const fm = el('feMerge', null, f);
+  el('feMergeNode', {in:'b'}, fm);
+  el('feMergeNode', {in:'SourceGraphic'}, fm);
+
+  const grid = el('g', {opacity:'0.5'}, svg);
+  for (let x = 0; x <= 1000; x += 40) {
+    for (let y = 0; y <= 780; y += 40) {
+      el('circle', {cx:x, cy:y, r:0.7, fill:'#1f2a3c'}, grid);
+    }
+  }
+
+  const map = {}; nodes.forEach(n => map[n.id] = n);
+
+  const edgesG = el('g', {id:'edges'}, svg);
+  edges.forEach((e) => {
+    const a = map[e.from], b = map[e.to];
+    if (!a || !b) return;
+    const {d, sx, sy, ex, ey} = edgePath(a, b);
+    const stroke = '#2a3346';
+    const path = el('path', {
+      d, fill:'none', stroke, 'stroke-width':1.4,
+      'marker-end':'url(#arr-3a4459)',
+      'data-edge': e.from + '->' + e.to,
+      opacity:0.85
+    }, edgesG);
+    path._defaultStroke = stroke;
+
+    if (e.label) {
+      const mx = (sx + ex)/2, my = (sy + ey)/2;
+      el('rect', {
+        x: mx - e.label.length*3 - 5, y: my - 12,
+        width: e.label.length*6 + 10, height: 14, rx:4,
+        fill:'#11141c', opacity:0.9
+      }, edgesG);
+      const t = el('text', {
+        x: mx, y: my - 2, 'text-anchor':'middle',
+        'font-size':9.5, 'font-family':'JetBrains Mono, monospace',
+        fill:'#6f7a8e', 'font-weight':500
+      }, edgesG);
+      t.textContent = e.label;
+    }
+  });
+
+  nodes.forEach(n => {
+    const g = el('g', {style:'cursor:pointer', 'data-node':n.id}, svg);
+    g.addEventListener('click', () => showPopup(n));
+
+    el('rect', {x:n.x+2, y:n.y+4, width:NW, height:NH, rx:12, fill:'rgba(0,0,0,.5)', filter:'url(#softGlow)'}, g);
+    const r = el('rect', {
+      x:n.x, y:n.y, width:NW, height:NH, rx:12,
+      fill:'#161a24',
+      stroke:n.color, 'stroke-width':1.5
+    }, g);
+    el('rect', {x:n.x, y:n.y, width:4, height:NH, rx:2, fill:n.color}, g);
+    el('rect', {x:n.x+4, y:n.y, width:NW-4, height:NH, rx:12, fill:n.color, opacity:0.06}, g);
+
+    el('circle', {cx:n.x+30, cy:n.y+NH/2, r:13, fill:n.color, opacity:0.18}, g);
+    const ic = el('text', {
+      x:n.x+30, y:n.y+NH/2+5, 'text-anchor':'middle',
+      'font-size':14
+    }, g);
+    ic.textContent = n.icon || '●';
+
+    const kind = el('text', {
+      x:n.x+50, y:n.y+22,
+      'font-size':9, 'font-family':'JetBrains Mono, monospace',
+      'font-weight':600, fill:n.color, 'letter-spacing':'0.6'
+    }, g);
+    kind.textContent = (n.kind || '').toUpperCase();
+
+    const lab = el('text', {
+      x:n.x+50, y:n.y+40,
+      'font-size':12.5, 'font-weight':600,
+      fill:'#e6ebf3',
+      'font-family':'Inter, sans-serif'
+    }, g);
+    lab.textContent = n.label;
+
+    g.addEventListener('mouseenter', () => {
+      r.setAttribute('stroke-width', 2.2);
+      g.style.filter = `drop-shadow(0 6px 18px ${n.color}55)`;
+    });
+    g.addEventListener('mouseleave', () => {
+      r.setAttribute('stroke-width', 1.5);
+      g.style.filter = '';
+    });
+  });
+}
+
+/* ─── popup ─── */
+function showPopup(n) {
+  const p = document.getElementById('node-popup');
+  document.getElementById('popup-stripe').style.background = n.color;
+  document.getElementById('popup-kind').textContent = n.kind || 'Composant';
+  document.getElementById('popup-kind').style.color = n.color;
+  document.getElementById('popup-title').textContent = n.label;
+  document.getElementById('popup-desc').textContent = n.desc;
+  const fc = document.getElementById('popup-files');
+  fc.innerHTML = '';
+  n.files.forEach(f => {
+    const s = document.createElement('span');
+    s.className = 'popup-file'; s.textContent = f;
+    fc.appendChild(s);
+  });
+  p.classList.add('visible');
+}
+function closePopup() { document.getElementById('node-popup').classList.remove('visible'); }
+
+document.addEventListener('click', (e) => {
+  const p = document.getElementById('node-popup');
+  if (!p.classList.contains('visible')) return;
+  if (p.contains(e.target)) return;
+  if (e.target.closest('[data-node]')) return;
+  closePopup();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
+
+/* ─── animate flow ─── */
+let flowAnimating = false;
+function animateFlow() {
+  if (flowAnimating) return;
+  flowAnimating = true;
+  const svg = document.getElementById('graph-svg');
+  const paths = [...svg.querySelectorAll('#edges path')];
+  paths.forEach((p, i) => {
+    setTimeout(() => {
+      const len = p.getTotalLength();
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = len;
+      p.style.stroke = '#2dd4bf';
+      p.style.transition = 'stroke-dashoffset 0.9s ease, stroke 0.3s';
+      requestAnimationFrame(() => { p.style.strokeDashoffset = 0; });
+      const dot = el('circle', {r:4, fill:'#2dd4bf', filter:'url(#softGlow)'}, svg);
+      const start = performance.now();
+      const dur = 900;
+      function tick(t) {
+        const k = Math.min(1, (t - start) / dur);
+        const pt = p.getPointAtLength(len * k);
+        dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
+        if (k < 1) requestAnimationFrame(tick); else dot.remove();
+      }
+      requestAnimationFrame(tick);
+      setTimeout(() => {
+        p.style.stroke = ''; p.style.strokeDasharray = ''; p.style.strokeDashoffset = '';
+      }, 1400);
+    }, i * 220);
+  });
+  setTimeout(() => { flowAnimating = false; }, paths.length * 220 + 1500);
+}
+
+document.getElementById('btn-flow').addEventListener('click', animateFlow);
+
+document.addEventListener('DOMContentLoaded', renderGraph);
+</script>
+
+</body>
+</html>

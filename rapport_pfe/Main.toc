@@ -1,0 +1,75 @@
+\babel@toc {french}{}\relax 
+\contentsline {chapter}{Remerciements}{ii}{chapter*.2}%
+\contentsline {chapter}{Introduction générale}{1}{chapter*.6}%
+\contentsline {chapter}{\numberline {1}Cadre du projet}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Introduction}{4}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Présentation de l'organisme d'accueil}{4}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}Solvinya Group}{4}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}Domaines d'activités}{4}{subsection.1.2.2}%
+\contentsline {section}{\numberline {1.3}Présentation du projet}{5}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Problématique}{5}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}Étude de l'existant}{6}{subsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.3.3}Solution proposée}{6}{subsection.1.3.3}%
+\contentsline {section}{\numberline {1.4}Méthodologie de travail}{6}{section.1.4}%
+\contentsline {subsection}{\numberline {1.4.1}Choix de la méthodologie Scrum}{6}{subsection.1.4.1}%
+\contentsline {subsection}{\numberline {1.4.2}Planification des sprints}{7}{subsection.1.4.2}%
+\contentsline {section}{\numberline {1.5}Conclusion}{7}{section.1.5}%
+\contentsline {chapter}{\numberline {2}Analyse des besoins et architecture globale}{8}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Introduction}{9}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Analyse des besoins}{9}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Besoins fonctionnels}{9}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Besoins non fonctionnels}{10}{subsection.2.2.2}%
+\contentsline {section}{\numberline {2.3}Acteurs du système et cas d'utilisation}{10}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Identification des acteurs}{10}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Diagramme des cas d'utilisation}{11}{subsection.2.3.2}%
+\contentsline {section}{\numberline {2.4}Architecture globale du système}{11}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Vue macro}{11}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Technologies et choix techniques}{12}{subsection.2.4.2}%
+\contentsline {section}{\numberline {2.5}Les 5 types de signaux B2B}{13}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Conclusion}{13}{section.2.6}%
+\contentsline {chapter}{\numberline {3}Conception technique}{14}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Introduction}{15}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Architecture des collecteurs}{15}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Collecteur LinkedIn Jobs — Signal d'externalisation}{15}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Collecteur LinkedIn B2B — Signaux directs}{15}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Collecteur BOAMP}{16}{subsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.2.4}Collecteur TED EU}{17}{subsection.3.2.4}%
+\contentsline {section}{\numberline {3.3}Pipeline d'ingestion}{17}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Vue d'ensemble — 6 étapes, $\approx $50\,ms/prospect}{18}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Formule de scoring — 4 dimensions pondérées}{18}{subsection.3.3.2}%
+\contentsline {section}{\numberline {3.4}Module NLP}{19}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Architecture des deux classifieurs}{19}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Comparaison des modèles}{20}{subsection.3.4.2}%
+\contentsline {subsection}{\numberline {3.4.3}Distribution des données d'entraînement}{20}{subsection.3.4.3}%
+\contentsline {section}{\numberline {3.5}Générateur de messages LLM}{21}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Schéma de base de données}{22}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Conception des workflows n8n}{22}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Workflow 04 — Déclencheur collecte (principal)}{22}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Workflow 03 — Démo live (pipeline bout-en-bout)}{23}{subsection.3.7.2}%
+\contentsline {section}{\numberline {3.8}Conclusion}{23}{section.3.8}%
+\contentsline {chapter}{\numberline {4}Réalisation et résultats}{24}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Introduction}{25}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Environnement de développement}{25}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Stack technique}{25}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Architecture Docker Compose}{25}{subsection.4.2.2}%
+\contentsline {section}{\numberline {4.3}Implémentation des collecteurs}{26}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Gestionnaire de sessions LinkedIn}{26}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Déduplication dans le pipeline}{26}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}Collecteur TED EU — gestion du multilinguisme}{27}{subsection.4.3.3}%
+\contentsline {section}{\numberline {4.4}API REST FastAPI}{28}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Endpoint de collecte asynchrone}{28}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Endpoint NLP}{28}{subsection.4.4.2}%
+\contentsline {section}{\numberline {4.5}Interfaces utilisateur}{29}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Dashboard Metabase}{29}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}Interface Swagger (FastAPI /docs)}{29}{subsection.4.5.2}%
+\contentsline {section}{\numberline {4.6}Résultats et évaluation}{29}{section.4.6}%
+\contentsline {subsection}{\numberline {4.6.1}Volume de données collectées}{29}{subsection.4.6.1}%
+\contentsline {subsection}{\numberline {4.6.2}Répartition par niveau de priorité}{31}{subsection.4.6.2}%
+\contentsline {subsection}{\numberline {4.6.3}Scores moyens par pays (LinkedIn Jobs)}{31}{subsection.4.6.3}%
+\contentsline {subsection}{\numberline {4.6.4}Performances du module NLP}{31}{subsection.4.6.4}%
+\contentsline {subsection}{\numberline {4.6.5}Performances du pipeline end-to-end}{32}{subsection.4.6.5}%
+\contentsline {subsection}{\numberline {4.6.6}Exemple de prospect généré}{32}{subsection.4.6.6}%
+\contentsline {section}{\numberline {4.7}Tests}{33}{section.4.7}%
+\contentsline {section}{\numberline {4.8}Conclusion}{33}{section.4.8}%
+\contentsline {chapter}{Conclusion générale}{34}{chapter*.39}%
+\contentsline {chapter}{Bibliographie}{36}{chapter*.40}%

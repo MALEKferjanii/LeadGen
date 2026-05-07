@@ -1,0 +1,19 @@
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.1}Introduction}{\reset@font\mtcSfont 15}{section.3.1}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.2}Architecture des collecteurs}{\reset@font\mtcSfont 15}{section.3.2}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.1}Collecteur LinkedIn Jobs — Signal d'externalisation}{\reset@font\mtcSSfont 15}{subsection.3.2.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.2}Collecteur LinkedIn B2B — Signaux directs}{\reset@font\mtcSSfont 15}{subsection.3.2.2}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.3}Collecteur BOAMP}{\reset@font\mtcSSfont 16}{subsection.3.2.3}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.4}Collecteur TED EU}{\reset@font\mtcSSfont 17}{subsection.3.2.4}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.3}Pipeline d'ingestion}{\reset@font\mtcSfont 17}{section.3.3}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.3.1}Vue d'ensemble — 6 étapes, $\approx $50\,ms/prospect}{\reset@font\mtcSSfont 18}{subsection.3.3.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.3.2}Formule de scoring — 4 dimensions pondérées}{\reset@font\mtcSSfont 18}{subsection.3.3.2}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.4}Module NLP}{\reset@font\mtcSfont 19}{section.3.4}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.4.1}Architecture des deux classifieurs}{\reset@font\mtcSSfont 19}{subsection.3.4.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.4.2}Comparaison des modèles}{\reset@font\mtcSSfont 20}{subsection.3.4.2}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.4.3}Distribution des données d'entraînement}{\reset@font\mtcSSfont 20}{subsection.3.4.3}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.5}Générateur de messages LLM}{\reset@font\mtcSfont 21}{section.3.5}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.6}Schéma de base de données}{\reset@font\mtcSfont 22}{section.3.6}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.7}Conception des workflows n8n}{\reset@font\mtcSfont 22}{section.3.7}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.7.1}Workflow 04 — Déclencheur collecte (principal)}{\reset@font\mtcSSfont 22}{subsection.3.7.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.7.2}Workflow 03 — Démo live (pipeline bout-en-bout)}{\reset@font\mtcSSfont 23}{subsection.3.7.2}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.8}Conclusion}{\reset@font\mtcSfont 23}{section.3.8}}

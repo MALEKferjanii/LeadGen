@@ -1,0 +1,102 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Conception technique}{14}{chapter.3}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{lof}{\contentsline {xchapter}{Conception technique}{14}{chapter.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {xchapter}{Conception technique}{14}{chapter.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Introduction}{15}{section.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Architecture des collecteurs}{15}{section.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Collecteur LinkedIn Jobs — Signal d'externalisation}{15}{subsection.3.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Flux interne du collecteur LinkedIn Jobs}}{15}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:flow_linkedin_hiring}{{3.1}{15}{Flux interne du collecteur LinkedIn Jobs}{figure.caption.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Collecteur LinkedIn B2B — Signaux directs}{15}{subsection.3.2.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces Stratégie et flux du collecteur LinkedIn B2B}}{16}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:flow_linkedin_b2b}{{3.2}{16}{Stratégie et flux du collecteur LinkedIn B2B}{figure.caption.18}{}}
+\newlabel{3@xvr}{{}{16}}
+\newlabel{3@vr}{{}{16}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces Patterns regex de détection B2B et leurs scores de boost}}{16}{table.caption.19}\protected@file@percent }
+\newlabel{tab:b2b_patterns}{{3.1}{16}{Patterns regex de détection B2B et leurs scores de boost}{table.caption.19}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Collecteur BOAMP}{16}{subsection.3.2.3}\protected@file@percent }
+\newlabel{lst:boamp}{{3.1}{17}{Requête BOAMP (extrait)}{lstlisting.3.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.1}{\ignorespaces Requête BOAMP (extrait)}}{17}{lstlisting.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}Collecteur TED EU}{17}{subsection.3.2.4}\protected@file@percent }
+\newlabel{lst:ted}{{3.2}{17}{Requête TED EU (expert query)}{lstlisting.3.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.2}{\ignorespaces Requête TED EU (expert query)}}{17}{lstlisting.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}Pipeline d'ingestion}{17}{section.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.1}Vue d'ensemble — 6 étapes, $\approx $50\,ms/prospect}{18}{subsection.3.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces Les 6 étapes du pipeline \texttt  {ingest.py}}}{18}{figure.caption.20}\protected@file@percent }
+\newlabel{fig:pipeline}{{3.3}{18}{Les 6 étapes du pipeline \texttt {ingest.py}}{figure.caption.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.2}Formule de scoring — 4 dimensions pondérées}{18}{subsection.3.3.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces Décomposition du score pour 4 exemples types}}{18}{figure.caption.21}\protected@file@percent }
+\newlabel{fig:score_decomp}{{3.4}{18}{Décomposition du score pour 4 exemples types}{figure.caption.21}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.2}{\ignorespaces Table des scores par dimension}}{19}{table.caption.22}\protected@file@percent }
+\newlabel{tab:score_dims}{{3.2}{19}{Table des scores par dimension}{table.caption.22}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}Module NLP}{19}{section.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.1}Architecture des deux classifieurs}{19}{subsection.3.4.1}\protected@file@percent }
+\newlabel{4@xvr}{{}{19}}
+\newlabel{4@vr}{{}{19}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces Architecture des deux pipelines NLP (TF-IDF + LinearSVC)}}{19}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:nlp_arch}{{3.5}{19}{Architecture des deux pipelines NLP (TF-IDF + LinearSVC)}{figure.caption.23}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.2}Comparaison des modèles}{20}{subsection.3.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.6}{\ignorespaces Comparaison des approches NLP — corpus de 604 exemples IT}}{20}{figure.caption.24}\protected@file@percent }
+\newlabel{fig:nlp_comparison}{{3.6}{20}{Comparaison des approches NLP — corpus de 604 exemples IT}{figure.caption.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.3}Distribution des données d'entraînement}{20}{subsection.3.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces Répartition des 604 exemples d'entraînement NLP par secteur}}{20}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:nlp_data}{{3.7}{20}{Répartition des 604 exemples d'entraînement NLP par secteur}{figure.caption.25}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.5}Générateur de messages LLM}{21}{section.3.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.8}{\ignorespaces Pipeline de génération de messages via LLM}}{21}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:llm_pipeline}{{3.8}{21}{Pipeline de génération de messages via LLM}{figure.caption.26}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.6}Schéma de base de données}{22}{section.3.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.9}{\ignorespaces Schéma entité-relation de la base de données}}{22}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:erd}{{3.9}{22}{Schéma entité-relation de la base de données}{figure.caption.27}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.7}Conception des workflows n8n}{22}{section.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7.1}Workflow 04 — Déclencheur collecte (principal)}{22}{subsection.3.7.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.10}{\ignorespaces Workflow 04 — Déclencheur de collecte automatique}}{22}{figure.caption.28}\protected@file@percent }
+\newlabel{fig:wf04}{{3.10}{22}{Workflow 04 — Déclencheur de collecte automatique}{figure.caption.28}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7.2}Workflow 03 — Démo live (pipeline bout-en-bout)}{23}{subsection.3.7.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.11}{\ignorespaces Workflow 03 — Démo live bout-en-bout (8 nœuds)}}{23}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:wf03}{{3.11}{23}{Workflow 03 — Démo live bout-en-bout (8 nœuds)}{figure.caption.29}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.8}Conclusion}{23}{section.3.8}\protected@file@percent }
+\@setckpt{Chapter3}{
+\setcounter{page}{24}
+\setcounter{equation}{0}
+\setcounter{enumi}{5}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{3}
+\setcounter{section}{8}
+\setcounter{subsection}{0}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{11}
+\setcounter{table}{2}
+\setcounter{LT@tables}{0}
+\setcounter{LT@chunks}{0}
+\setcounter{parentequation}{0}
+\setcounter{lstnumber}{8}
+\setcounter{tcbbreakpart}{1}
+\setcounter{tcblayer}{0}
+\setcounter{tcolorbox@number}{4}
+\setcounter{section@level}{0}
+\setcounter{Item}{10}
+\setcounter{Hfootnote}{0}
+\setcounter{bookmark@seq@number}{48}
+\setcounter{vrcnt}{4}
+\setcounter{float@type}{16}
+\setcounter{caption@flags}{2}
+\setcounter{continuedfloat}{0}
+\setcounter{subfigure}{0}
+\setcounter{subtable}{0}
+\setcounter{AM@survey}{0}
+\setcounter{mtc}{3}
+\setcounter{minitocdepth}{3}
+\setcounter{ptc}{0}
+\setcounter{parttocdepth}{2}
+\setcounter{lstlisting}{2}
+}

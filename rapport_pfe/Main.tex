@@ -1,0 +1,204 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+%% ─── Géométrie ────────────────────────────────────────────────────────────────
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm]{geometry}
+
+%% ─── Encodage & langue ────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{textcomp}
+
+%% ─── Typographie ──────────────────────────────────────────────────────────────
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+
+%% ─── Graphiques & couleurs ────────────────────────────────────────────────────
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit,
+                backgrounds, calc, decorations.pathmorphing,
+                shadows.blur, matrix, chains}
+
+%% ─── Couleurs thème ───────────────────────────────────────────────────────────
+\definecolor{espritBlue}{RGB}{0,84,159}
+\definecolor{espritRed}{RGB}{196,30,58}
+\definecolor{espritGray}{RGB}{88,88,88}
+\definecolor{lightBlue}{RGB}{230,241,251}
+\definecolor{lightGreen}{RGB}{225,245,238}
+\definecolor{lightAmber}{RGB}{250,238,218}
+\definecolor{lightPurple}{RGB}{238,237,254}
+\definecolor{darkGreen}{RGB}{8,80,65}
+\definecolor{darkBlue}{RGB}{12,68,124}
+\definecolor{boxBg}{RGB}{248,249,250}
+\definecolor{srcColor}{RGB}{238,237,254}
+\definecolor{colColor}{RGB}{225,245,238}
+\definecolor{pipColor}{RGB}{230,241,251}
+\definecolor{nlpColor}{RGB}{250,238,218}
+\definecolor{outColor}{RGB}{234,243,222}
+\definecolor{warnColor}{RGB}{252,235,235}
+
+%% ─── En-têtes & pieds de page ─────────────────────────────────────────────────
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{espritGray}{\nouppercase\leftmark}}
+\fancyhead[R]{\small\textcolor{espritGray}{\nouppercase\rightmark}}
+\fancyfoot[R]{\textbf{\thepage}}
+\fancyfoot[L]{\small\textcolor{espritGray}{LeadGen Francophone 360+}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%% ─── Tableaux ─────────────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{colortbl}
+\usepackage{array}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}}
+
+%% ─── Maths ────────────────────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+%% ─── Code source ──────────────────────────────────────────────────────────────
+\usepackage{listings}
+\lstset{
+  backgroundcolor=\color{boxBg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{espritGray!40},
+  keywordstyle=\color{espritBlue}\bfseries,
+  commentstyle=\color{darkGreen}\itshape,
+  stringstyle=\color{espritRed},
+  numbers=left,
+  numberstyle=\tiny\color{espritGray},
+  numbersep=5pt,
+  showstringspaces=false,
+  tabsize=2,
+  xleftmargin=10pt,
+  xrightmargin=5pt,
+  aboveskip=8pt,
+  belowskip=8pt,
+}
+\lstdefinelanguage{Python3}{
+  morekeywords={async,await,def,class,return,import,from,for,in,if,else,
+                elif,while,try,except,with,as,True,False,None,not,and,or,
+                lambda,yield,raise,pass,break,continue},
+  sensitive=true,
+  morecomment=[l]{\#},
+  morestring=[b]",
+  morestring=[b]',
+}
+
+%% ─── Boîtes colorées ──────────────────────────────────────────────────────────
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable,skins}
+\newtcolorbox{infobox}[1][]{
+  colback=lightBlue!80, colframe=espritBlue!60,
+  fonttitle=\bfseries\small, title=#1,
+  boxrule=0.5pt, arc=4pt, left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+\newtcolorbox{warningbox}[1][]{
+  colback=lightAmber!80, colframe=espritRed!50,
+  fonttitle=\bfseries\small, title=#1,
+  boxrule=0.5pt, arc=4pt, left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+\newtcolorbox{successbox}[1][]{
+  colback=lightGreen!80, colframe=darkGreen!60,
+  fonttitle=\bfseries\small, title=#1,
+  boxrule=0.5pt, arc=4pt, left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+
+%% ─── Références & liens ───────────────────────────────────────────────────────
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=espritBlue,
+  citecolor=espritBlue,
+  urlcolor=espritBlue,
+  plainpages=false,
+  pdfpagelabels=true,
+  pdftitle={Rapport PFE — LeadGen Francophone 360+},
+  pdfauthor={Ferjani Malek},
+  pdfsubject={Génération automatisée de leads B2B IT},
+}
+\usepackage[french]{varioref}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf, labelsep=period}
+\usepackage{subcaption}
+\usepackage{pdfpages}
+\usepackage{eso-pic}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+%% ─── Mini-TOC par chapitre (après titlesec pour éviter le conflit) ────────────
+\usepackage{minitoc}
+\mtcsetdepth{minitoc}{3}
+\dominitoc
+
+%% ─── Style des titres ─────────────────────────────────────────────────────────
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{espritBlue}}
+  {\chaptertitlename\ \thechapter}{12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{30pt}{20pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{espritBlue!80}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{espritGray}}
+  {\thesubsection}{1em}{}
+
+%% ─── Commandes utilitaires ────────────────────────────────────────────────────
+\newcommand{\badge}[2]{%
+  \colorbox{#1}{\textcolor{white}{\scriptsize\textsf{\textbf{#2}}}}%
+}
+\newcommand{\badgeBlue}[1]{\badge{espritBlue}{#1}}
+\newcommand{\badgeGreen}[1]{\badge{darkGreen}{#1}}
+\newcommand{\badgeRed}[1]{\badge{espritRed}{#1}}
+\newcommand{\badgeAmber}[1]{\colorbox{lightAmber}{\textcolor{darkBlue}{\scriptsize\textsf{\textbf{#1}}}}}
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+\include{garde_fin}
+\include{form}
+
+\newpage
+\pagenumbering{roman}
+\include{Dedicaces}
+\include{Remerciements}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\newpage
+\pagenumbering{arabic}
+
+\include{Introduction}
+\include{Chapter1}
+\include{Chapter2}
+\include{Chapter3}
+\include{Chapter4}
+\include{Conclusion}
+
+\bibliographystyle{alpha}
+\bibliography{bibliography}
+\addcontentsline{toc}{chapter}{Bibliographie}
+
+\pagestyle{empty}
+\include{garde_fin2}
+
+\end{document}

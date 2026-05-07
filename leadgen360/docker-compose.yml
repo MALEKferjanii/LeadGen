@@ -1,0 +1,137 @@
+version: "3.9"
+
+networks:
+  leadgen_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  n8n_data:
+  metabase_data:
+  redis_data:
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: leadgen_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-leadgen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-leadgen_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-leadgen360}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-leadgen} -d ${POSTGRES_DB:-leadgen360}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - leadgen_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: leadgen_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - leadgen_net
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: leadgen_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-admin123}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-leadgen360}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-leadgen}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-leadgen_secret}
+      - DB_POSTGRESDB_SCHEMA=n8n
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - leadgen_net
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: leadgen_metabase
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=${POSTGRES_DB:-leadgen360}
+      - MB_DB_PORT=5432
+      - MB_DB_USER=${POSTGRES_USER:-leadgen}
+      - MB_DB_PASS=${POSTGRES_PASSWORD:-leadgen_secret}
+      - MB_DB_HOST=postgres
+      - MB_DB_SCHEMA=metabase
+    volumes:
+      - metabase_data:/metabase-data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - leadgen_net
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: leadgen_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-leadgen}:${POSTGRES_PASSWORD:-leadgen_secret}@postgres:5432/${POSTGRES_DB:-leadgen360}
+      - API_SECRET_KEY=${API_SECRET_KEY:-changeme_secret_key}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.1-8b-instant}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-mistral}
+      - HUNTER_API_KEY=${HUNTER_API_KEY:-}
+      - LINKEDIN_EMAIL_1=${LINKEDIN_EMAIL_1:-}
+      - LINKEDIN_PASSWORD_1=${LINKEDIN_PASSWORD_1:-}
+      - LINKEDIN_EMAIL_2=${LINKEDIN_EMAIL_2:-}
+      - LINKEDIN_PASSWORD_2=${LINKEDIN_PASSWORD_2:-}
+      - LINKEDIN_EMAIL_3=${LINKEDIN_EMAIL_3:-}
+      - LINKEDIN_PASSWORD_3=${LINKEDIN_PASSWORD_3:-}
+      - COOKIES_DIR=/app/cookies
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./cookies:/app/cookies
+      - ./nlp/models:/app/nlp/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - leadgen_net

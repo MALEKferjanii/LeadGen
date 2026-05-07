@@ -1,0 +1,60 @@
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[espritBlue] (current page.south west)
+    rectangle ([yshift=3cm]current page.south east);
+  \fill[espritRed] ([yshift=3cm]current page.south west)
+    rectangle ([yshift=3.4cm]current page.south east);
+\end{tikzpicture}
+
+\vspace*{\fill}
+
+\begin{center}
+  \begin{tcolorbox}[
+    colback=lightBlue!20, colframe=espritBlue,
+    boxrule=1pt, arc=6pt,
+    left=20pt, right=20pt, top=16pt, bottom=16pt,
+    width=0.88\textwidth
+  ]
+    \centering
+    {\Large\bfseries\color{espritBlue} Résumé} \\[10pt]
+    \small
+    Ce rapport présente \textbf{LeadGen Francophone 360+}, une plateforme de
+    génération automatisée de leads B2B IT développée pour Solvinya Group.
+    La plateforme scrape 5 sources (LinkedIn, BOAMP, TED EU, Malt.fr), qualifie
+    chaque prospect avec un score 0--100 basé sur des règles métier
+    (pays $\times$30\%, technologie $\times$25\%, secteur $\times$25\%,
+    boost $\times$20\%), classe le texte via un modèle NLP TF-IDF (75\% accuracy),
+    et génère des messages de prospection personnalisés via Groq LLM. 815 prospects
+    ont été collectés lors de la première exécution. La plateforme est entièrement
+    conteneurisée (Docker Compose), automatisée (n8n), et expose une API REST
+    FastAPI. \\[8pt]
+    \textbf{Mots-clés~:} Web scraping, NLP, LLM, FastAPI, PostgreSQL,
+    Génération de leads B2B, n8n, Docker
+  \end{tcolorbox}
+
+  \vspace{0.8cm}
+
+  \begin{tcolorbox}[
+    colback=lightAmber!20, colframe=espritRed!60,
+    boxrule=1pt, arc=6pt,
+    left=20pt, right=20pt, top=16pt, bottom=16pt,
+    width=0.88\textwidth
+  ]
+    \centering
+    {\Large\bfseries\color{espritRed} Abstract} \\[10pt]
+    \small
+    This report presents \textbf{LeadGen Francophone 360+}, an automated B2B IT
+    lead generation platform developed for Solvinya Group. The platform scrapes
+    5 sources (LinkedIn, BOAMP, TED EU, Malt.fr), qualifies each prospect with a
+    0--100 rule-based score (country $\times$30\%, technology $\times$25\%,
+    sector $\times$25\%, boost $\times$20\%), classifies text via a TF-IDF NLP
+    model (75\% accuracy), and generates personalized prospecting messages via Groq
+    LLM. 815 prospects were collected in the first run. The platform is fully
+    containerized (Docker Compose), automated (n8n), and exposes a FastAPI REST
+    API. \\[8pt]
+    \textbf{Keywords~:} Web scraping, NLP, LLM, FastAPI, PostgreSQL,
+    B2B lead generation, n8n, Docker
+  \end{tcolorbox}
+\end{center}
+
+\vspace*{\fill}

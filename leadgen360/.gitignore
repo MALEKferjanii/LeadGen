@@ -1,0 +1,31 @@
+# Secrets
+.env
+cookies/
+*.cookie
+
+# Modèles NLP (artefacts lourds)
+nlp/models/*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.egg
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

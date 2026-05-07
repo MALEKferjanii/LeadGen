@@ -1,0 +1,28 @@
+\babel@toc {french}{}\relax 
+\addvspace {10\p@ }
+\contentsline {xchapter}{Cadre du projet}{3}{chapter.1}%
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Les 5 formes de signaux d'un besoin IT actif}}{5}{figure.caption.8}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{Analyse des besoins et architecture globale}{8}{chapter.2}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Diagramme des cas d'utilisation}}{11}{figure.caption.13}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Architecture macro du système LeadGen 360+}}{11}{figure.caption.14}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{Conception technique}{14}{chapter.3}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Flux interne du collecteur LinkedIn Jobs}}{15}{figure.caption.17}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Stratégie et flux du collecteur LinkedIn B2B}}{16}{figure.caption.18}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Les 6 étapes du pipeline \texttt {ingest.py}}}{18}{figure.caption.20}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Décomposition du score pour 4 exemples types}}{18}{figure.caption.21}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Architecture des deux pipelines NLP (TF-IDF + LinearSVC)}}{19}{figure.caption.23}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Comparaison des approches NLP — corpus de 604 exemples IT}}{20}{figure.caption.24}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Répartition des 604 exemples d'entraînement NLP par secteur}}{20}{figure.caption.25}%
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Pipeline de génération de messages via LLM}}{21}{figure.caption.26}%
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Schéma entité-relation de la base de données}}{22}{figure.caption.27}%
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Workflow 04 — Déclencheur de collecte automatique}}{22}{figure.caption.28}%
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Workflow 03 — Démo live bout-en-bout (8 nœuds)}}{23}{figure.caption.29}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{Réalisation et résultats}{24}{chapter.4}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Architecture Docker Compose — 5 services}}{26}{figure.caption.31}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Volume de prospects collectés par source et par pays (2 mai 2026)}}{30}{figure.caption.32}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Distribution des prospects par plage de score}}{31}{figure.caption.34}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Score moyen par pays — collecteur LinkedIn Jobs}}{31}{figure.caption.35}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Latences du pipeline de traitement bout-en-bout}}{32}{figure.caption.37}%

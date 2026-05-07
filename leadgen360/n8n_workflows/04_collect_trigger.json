@@ -1,0 +1,157 @@
+{
+  "name": "LeadGen — Déclencheur collecte",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Toutes les 12h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://leadgen_api:8000/api/collect/all",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "leadgen360_demo_secret_2024"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "trigger-collect",
+      "name": "Déclencher collecte complète",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "started"
+            }
+          ]
+        }
+      },
+      "id": "check-started",
+      "name": "Collecte démarrée ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    timestamp: new Date().toISOString(),\n    status: 'started',\n    message: $input.item.json.message,\n    source: 'n8n-scheduled'\n  }\n}];"
+      },
+      "id": "format-success",
+      "name": "Formater succès",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    timestamp: new Date().toISOString(),\n    status: 'error',\n    details: $input.item.json\n  }\n}];"
+      },
+      "id": "format-error",
+      "name": "Formater erreur",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "collect",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook manuel",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 500]
+    }
+  ],
+  "connections": {
+    "Toutes les 12h": {
+      "main": [
+        [
+          {
+            "node": "Déclencher collecte complète",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook manuel": {
+      "main": [
+        [
+          {
+            "node": "Déclencher collecte complète",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Déclencher collecte complète": {
+      "main": [
+        [
+          {
+            "node": "Collecte démarrée ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collecte démarrée ?": {
+      "main": [
+        [
+          {
+            "node": "Formater succès",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formater erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

@@ -1,0 +1,176 @@
+{
+  "name": "03 — Live Demo Soutenance",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Démarrer la démo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "id": "node-1"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {"name": "technology", "value": "COBOL"},
+            {"name": "location", "value": "France"},
+            {"name": "country_iso", "value": "FR"}
+          ],
+          "number": [
+            {"name": "limit", "value": 10},
+            {"name": "priority_boost", "value": 25}
+          ]
+        },
+        "options": {}
+      },
+      "name": "Paramètres de recherche",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "id": "node-2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://leadgen_api:8000/api/ingest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-API-Key", "value": "leadgen360_demo_secret_2024"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"prospects\": [{\"company_name\": \"BNP Paribas\", \"company_linkedin_url\": \"https://linkedin.com/company/bnp-paribas\", \"company_universal_name\": \"bnp-paribas\", \"job_title\": \"Développeur COBOL Senior\", \"job_url\": \"https://linkedin.com/jobs/view/demo-soutenance\", \"location\": \"Paris, France\", \"country_iso\": \"FR\", \"technology\": \"COBOL\", \"sector_hint\": \"Finance/Banque\", \"priority_boost\": 25, \"raw_job\": {}}]}",
+        "options": {}
+      },
+      "name": "POST /api/ingest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300],
+      "id": "node-3"
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "name": "Attente 3s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "id": "node-4",
+      "webhookId": "demo-wait"
+    },
+    {
+      "parameters": {
+        "url": "http://leadgen_api:8000/api/prospects",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-API-Key", "value": "leadgen360_demo_secret_2024"}
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "min_score", "value": "70"},
+            {"name": "limit", "value": "5"}
+          ]
+        },
+        "options": {}
+      },
+      "name": "GET top prospects",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 300],
+      "id": "node-5"
+    },
+    {
+      "parameters": {
+        "functionCode": "const prospects = $input.all();\nconst data = prospects[0].json;\nconst list = Array.isArray(data) ? data : [data];\nif (list.length === 0) {\n  throw new Error('Aucun prospect avec score >= 70.');\n}\nconst first = list[0];\nreturn [{\n  json: {\n    opportunity_id: first.id,\n    company_name: first.company_name,\n    score: first.priority_score,\n    technology: first.technologies ? first.technologies[0] : 'IT',\n    country: first.country\n  }\n}];"
+      },
+      "name": "Extraire opportunity_id",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "id": "node-6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://leadgen_api:8000/api/generate/message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-API-Key", "value": "leadgen360_demo_secret_2024"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"opportunity_id\": \"{{ $json.opportunity_id }}\"}",
+        "options": {}
+      },
+      "name": "POST /api/generate/message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1560, 300],
+      "id": "node-7"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {"name": "entreprise", "value": "={{ $json.company_name }}"},
+            {"name": "score", "value": "={{ $json.score }}/100"},
+            {"name": "message_linkedin", "value": "={{ $json.message }}"},
+            {"name": "lead_id", "value": "={{ $json.lead_id }}"},
+            {"name": "status", "value": "success — LeadGen 360+ Solvinya Group"}
+          ]
+        },
+        "options": {}
+      },
+      "name": "Résultat formaté",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1780, 300],
+      "id": "node-8"
+    }
+  ],
+  "connections": {
+    "Démarrer la démo": {
+      "main": [[{"node": "Paramètres de recherche", "type": "main", "index": 0}]]
+    },
+    "Paramètres de recherche": {
+      "main": [[{"node": "POST /api/ingest", "type": "main", "index": 0}]]
+    },
+    "POST /api/ingest": {
+      "main": [[{"node": "Attente 3s", "type": "main", "index": 0}]]
+    },
+    "Attente 3s": {
+      "main": [[{"node": "GET top prospects", "type": "main", "index": 0}]]
+    },
+    "GET top prospects": {
+      "main": [[{"node": "Extraire opportunity_id", "type": "main", "index": 0}]]
+    },
+    "Extraire opportunity_id": {
+      "main": [[{"node": "POST /api/generate/message", "type": "main", "index": 0}]]
+    },
+    "POST /api/generate/message": {
+      "main": [[{"node": "Résultat formaté", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2",
+  "meta": {
+    "instanceId": "leadgen360-demo"
+  },
+  "id": "demo-workflow-01",
+  "tags": [{"name": "demo"}, {"name": "soutenance"}]
+}

@@ -1,0 +1,85 @@
+\chapter*{Conclusion générale}
+\markboth{Conclusion générale}{}
+\addcontentsline{toc}{chapter}{Conclusion générale}
+
+\section*{Bilan du projet}
+
+Ce projet de fin d'études a abouti à la réalisation complète de
+\textbf{LeadGen Francophone 360+}, une plateforme de génération automatisée de
+leads B2B IT destinée à Solvinya Group. Tous les objectifs initiaux ont été
+atteints~:
+
+\begin{itemize}
+  \item \textbf{Collecte multi-source~:} 4 collecteurs actifs (LinkedIn Jobs,
+        LinkedIn B2B, BOAMP, TED EU) couvrant 5 pays francophones (France,
+        Belgique, Luxembourg, Suisse, Tunisie) et produisant \textbf{815 prospects}
+        lors de la première exécution complète~;
+  \item \textbf{Scoring déterministe~:} formule pondérée 4 dimensions (pays,
+        technologie, secteur, boost) produisant des scores 0--100 cohérents
+        avec les priorités métier de Solvinya~;
+  \item \textbf{Module NLP~:} classifieur TF-IDF + LinearSVC atteignant
+        \textbf{75\%} de précision en cross-validation 5-fold sur 10 secteurs,
+        surpassant les embeddings sentence-transformers sur ce corpus technique~;
+  \item \textbf{Générateur LLM~:} messages LinkedIn et emails personnalisés
+        générés en 1 à 3 secondes via Groq, adaptés au type de signal détecté~;
+  \item \textbf{Automatisation~:} 4 workflows n8n opérationnels, collecte
+        planifiée toutes les 12h, déclenchement manuel par webhook~;
+  \item \textbf{API REST~:} 8 endpoints FastAPI documentés, authentifiés et
+        testés~;
+  \item \textbf{Infrastructure~:} déploiement Docker Compose en une commande,
+        dashboard Metabase connecté.
+\end{itemize}
+
+\section*{Difficultés rencontrées}
+
+Plusieurs difficultés techniques ont été surmontées au cours du projet~:
+
+\begin{description}
+  \item[API TED EU] L'API ne fonctionne qu'en POST (le GET retourne 405). La
+    syntaxe \emph{expert query} avec des noms de champs très spécifiques
+    (\texttt{notice-title}, \texttt{buyer-country}) a nécessité une exploration
+    de la documentation officielle. De plus, chaque requête ne peut filtrer
+    qu'un seul pays, imposant une boucle Python.
+
+  \item[LinkedIn CONTENT filter] L'API non-officielle \texttt{linkedin-api} ne
+    retourne aucun résultat avec le filtre \texttt{CONTENT}. La stratégie a été
+    pivotée vers la recherche d'entreprises acheteuses suivie du scan de leurs
+    publications.
+
+  \item[Malt.fr] La protection Cloudflare bloque toutes les requêtes httpx et
+    même Playwright standard. Ce collecteur reste inactif dans la version
+    actuelle.
+
+  \item[Déduplication asyncpg] Un bug de paramétrage SQL (mélange de valeurs
+    littérales et de paramètres \texttt{\$N}) a causé des erreurs de comptage de
+    paramètres, corrigées en rendant tous les paramètres dynamiques.
+\end{description}
+
+\section*{Perspectives d'évolution}
+
+\begin{enumerate}
+  \item \textbf{Malt.fr~:} implémentation avec Playwright + stealth plugin pour
+        contourner Cloudflare~;
+  \item \textbf{Enrichissement contacts~:} intégration Hunter.io pour trouver
+        l'email du DSI ou DRH automatiquement~;
+  \item \textbf{Qualification par LLM~:} utiliser un LLM pour pré-qualifier les
+        prospects (est-ce réellement un besoin Solvinya~?) avant le scoring~;
+  \item \textbf{CRM intégration~:} connecter la plateforme à HubSpot ou Pipedrive
+        via API pour synchroniser les prospects qualifiés directement~;
+  \item \textbf{Monitoring~:} ajouter Prometheus + Grafana pour surveiller le
+        volume de collecte, les taux d'échec et les latences API~;
+  \item \textbf{Multi-tenant~:} étendre la plateforme pour servir plusieurs ESN
+        avec des paramètres de scoring configurables par client.
+\end{enumerate}
+
+\section*{Conclusion personnelle}
+
+Ce projet m'a permis d'appliquer concrètement des compétences transversales~:
+développement Python asynchrone (asyncio, asyncpg, FastAPI), traitement
+automatique du langage naturel, intégration d'APIs complexes, et DevOps
+(Docker, n8n). Au-delà des aspects techniques, j'ai appris à pivoter rapidement
+face aux limitations des APIs tierces et à concevoir un système résilient dont
+chaque composant peut fonctionner indépendamment.
+
+La plateforme est opérationnelle, documentée et deployable, et constitue une
+base solide pour l'automatisation de la prospection commerciale de Solvinya Group.

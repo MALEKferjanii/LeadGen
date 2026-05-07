@@ -1,0 +1,48 @@
+{
+  "name": "01 — LinkedIn Hiring Signal Collector",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "hours", "hoursInterval": 6}]}
+      },
+      "name": "Toutes les 6h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "id": "node-1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/api/ingest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-API-Key", "value": "={{$env.API_SECRET_KEY}}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "prospects", "value": "=[]"}
+          ]
+        },
+        "options": {}
+      },
+      "name": "Déclencher collecte",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300],
+      "id": "node-2"
+    }
+  ],
+  "connections": {
+    "Toutes les 6h": {
+      "main": [[{"node": "Déclencher collecte", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "linkedin-hiring-01"
+}

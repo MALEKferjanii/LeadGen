@@ -1,0 +1,84 @@
+{
+  "sector_accuracy": 0.6364,
+  "sector_macro_f1": 0.6087,
+  "sector_cv_mean": 0.6937,
+  "sector_cv_std": 0.0225,
+  "priority_accuracy": 0.3058,
+  "priority_macro_f1": 0.2823,
+  "n_training_examples": 604,
+  "n_test_examples": 121,
+  "per_sector": {
+    "Agriculture": {
+      "precision": 0.7,
+      "recall": 0.7,
+      "f1": 0.7,
+      "support": 10
+    },
+    "Automobile": {
+      "precision": 0.625,
+      "recall": 0.5,
+      "f1": 0.556,
+      "support": 10
+    },
+    "Energie": {
+      "precision": 1.0,
+      "recall": 0.9,
+      "f1": 0.947,
+      "support": 10
+    },
+    "Finance": {
+      "precision": 0.615,
+      "recall": 0.667,
+      "f1": 0.64,
+      "support": 12
+    },
+    "Immobilier": {
+      "precision": 0.75,
+      "recall": 0.6,
+      "f1": 0.667,
+      "support": 10
+    },
+    "Industrie": {
+      "precision": 0.6,
+      "recall": 0.545,
+      "f1": 0.571,
+      "support": 11
+    },
+    "Public": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 7
+    },
+    "Retail": {
+      "precision": 0.444,
+      "recall": 0.364,
+      "f1": 0.4,
+      "support": 11
+    },
+    "Sante": {
+      "precision": 0.909,
+      "recall": 1.0,
+      "f1": 0.952,
+      "support": 10
+    },
+    "Startup": {
+      "precision": 0.818,
+      "recall": 0.9,
+      "f1": 0.857,
+      "support": 10
+    },
+    "Tech": {
+      "precision": 0.25,
+      "recall": 0.3,
+      "f1": 0.273,
+      "support": 10
+    },
+    "Telecom": {
+      "precision": 0.588,
+      "recall": 1.0,
+      "f1": 0.741,
+      "support": 10
+    }
+  }
+}

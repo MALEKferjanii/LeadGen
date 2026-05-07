@@ -1,0 +1,23 @@
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.1}Introduction}{\reset@font\mtcSfont 25}{section.4.1}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.2}Environnement de développement}{\reset@font\mtcSfont 25}{section.4.2}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.2.1}Stack technique}{\reset@font\mtcSSfont 25}{subsection.4.2.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.2.2}Architecture Docker Compose}{\reset@font\mtcSSfont 25}{subsection.4.2.2}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.3}Implémentation des collecteurs}{\reset@font\mtcSfont 26}{section.4.3}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.3.1}Gestionnaire de sessions LinkedIn}{\reset@font\mtcSSfont 26}{subsection.4.3.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.3.2}Déduplication dans le pipeline}{\reset@font\mtcSSfont 26}{subsection.4.3.2}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.3.3}Collecteur TED EU — gestion du multilinguisme}{\reset@font\mtcSSfont 27}{subsection.4.3.3}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.4}API REST FastAPI}{\reset@font\mtcSfont 28}{section.4.4}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.4.1}Endpoint de collecte asynchrone}{\reset@font\mtcSSfont 28}{subsection.4.4.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.4.2}Endpoint NLP}{\reset@font\mtcSSfont 28}{subsection.4.4.2}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.5}Interfaces utilisateur}{\reset@font\mtcSfont 29}{section.4.5}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.5.1}Dashboard Metabase}{\reset@font\mtcSSfont 29}{subsection.4.5.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.5.2}Interface Swagger (FastAPI /docs)}{\reset@font\mtcSSfont 29}{subsection.4.5.2}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.6}Résultats et évaluation}{\reset@font\mtcSfont 29}{section.4.6}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.6.1}Volume de données collectées}{\reset@font\mtcSSfont 29}{subsection.4.6.1}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.6.2}Répartition par niveau de priorité}{\reset@font\mtcSSfont 31}{subsection.4.6.2}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.6.3}Scores moyens par pays (LinkedIn Jobs)}{\reset@font\mtcSSfont 31}{subsection.4.6.3}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.6.4}Performances du module NLP}{\reset@font\mtcSSfont 31}{subsection.4.6.4}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.6.5}Performances du pipeline end-to-end}{\reset@font\mtcSSfont 32}{subsection.4.6.5}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.6.6}Exemple de prospect généré}{\reset@font\mtcSSfont 32}{subsection.4.6.6}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.7}Tests}{\reset@font\mtcSfont 33}{section.4.7}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.8}Conclusion}{\reset@font\mtcSfont 33}{section.4.8}}

@@ -1,0 +1,197 @@
+\chapter{Cadre du projet}
+\markboth{Chapitre 1}{Cadre du projet}
+\setcounter{chapter}{1}
+\minitoc
+\newpage
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+
+Ce premier chapitre établit le cadre général du projet. Nous présentons
+l'entreprise d'accueil Solvinya Group, détaillons la problématique commerciale
+qui justifie ce développement, exposons la solution proposée, et décrivons
+la méthodologie de développement adoptée.
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Présentation de l'organisme d'accueil}
+
+\subsection{Solvinya Group}
+
+Solvinya Group est une \textbf{ESN} (Entreprise de Services Numériques) opérant
+principalement sur les marchés francophones~: France, Belgique, Luxembourg,
+Suisse et Tunisie. L'entreprise propose des services de conseil, de développement
+logiciel, d'externalisation IT et d'accompagnement en transformation numérique.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{4cm} L{9cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Critère} & \textbf{Description} \\
+    \midrule
+    Secteur & ESN — Entreprise de Services Numériques \\
+    Marchés cibles & France, Belgique, Luxembourg, Suisse, Tunisie \\
+    Services & Développement logiciel, Conseil IT, Externalisation \\
+    Technologies & COBOL/Mainframe, SAP, Java, Python, DevOps, Cloud \\
+    Clients types & Banques, Assurances, Groupes industriels, Secteur public \\
+    \bottomrule
+  \end{tabular}
+  \caption{Profil de Solvinya Group}
+  \label{tab:solvinya}
+\end{table}
+
+\subsection{Domaines d'activités}
+
+Solvinya Group intervient principalement dans les domaines suivants~:
+
+\begin{itemize}
+  \item \textbf{Systèmes legacy~:} maintenance et migration de systèmes
+        COBOL/Mainframe dans le secteur bancaire ;
+  \item \textbf{Intégration ERP~:} déploiement et personnalisation de SAP ;
+  \item \textbf{Développement applicatif~:} Java, Python, React ;
+  \item \textbf{Data \& IA~:} projets Data Engineering, Machine Learning ;
+  \item \textbf{DevOps \& Cloud~:} CI/CD, infrastructure AWS/Azure.
+\end{itemize}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Présentation du projet}
+
+\subsection{Problématique}
+
+La croissance de Solvinya Group repose sur sa capacité à identifier et contacter
+rapidement les entreprises qui ont un \textbf{besoin IT actif}. Ce besoin peut
+prendre plusieurs formes (illustrées en figure~\vref{fig:signal_types})~:
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.2cm,
+    box/.style={draw=espritBlue!60, fill=lightBlue!40, rounded corners=6pt,
+                minimum width=3.5cm, minimum height=1.2cm,
+                font=\small\bfseries, align=center, inner sep=6pt},
+    arrow/.style={-{Stealth[length=6pt]}, espritBlue!70, thick}
+  ]
+    %% Centre
+    \node[draw=espritBlue, fill=espritBlue!10, rounded corners=8pt,
+          minimum width=3cm, minimum height=1.5cm, font=\bfseries\color{espritBlue},
+          align=center] (center) {Besoin IT\\actif};
+
+    %% Nœuds autour
+    \node[box, above=1.8cm of center] (ao)
+      {Appel d'offres\\public / privé};
+    \node[box, right=2.5cm of center] (rfp)
+      {RFP / Demande de\\proposition (DDP)};
+    \node[box, below=1.8cm of center] (sub)
+      {Sous-traitance /\\Externalisation};
+    \node[box, left=2.5cm of center] (part)
+      {Partenariat /\\Co-traitance};
+    \node[draw=warnColor!80, fill=warnColor!40, rounded corners=6pt,
+          minimum width=3.5cm, minimum height=1.2cm, font=\small\bfseries,
+          align=center, above right=1.2cm and 1.8cm of center] (rec)
+      {Recrutement IT\\(signal indirect)};
+
+    \draw[arrow] (center) -- (ao);
+    \draw[arrow] (center) -- (rfp);
+    \draw[arrow] (center) -- (sub);
+    \draw[arrow] (center) -- (part);
+    \draw[arrow, dashed] (center) -- (rec);
+  \end{tikzpicture}
+  \caption{Les 5 formes de signaux d'un besoin IT actif}
+  \label{fig:signal_types}
+\end{figure}
+
+\vspace{0.3cm}
+
+\textbf{État actuel (sans l'outil)~:} les commerciaux effectuent manuellement
+cette veille, ce qui représente~:
+\begin{itemize}
+  \item 3 à 5 heures par semaine de recherche manuelle sur LinkedIn, BOAMP et
+        journaux officiels ;
+  \item Un processus non systématique, dépendant du réseau personnel ;
+  \item Des leads de qualité variable, souvent périmés au moment de la prise de contact ;
+  \item Absence totale de couverture des marchés belge, luxembourgeois et suisse.
+\end{itemize}
+
+\subsection{Étude de l'existant}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{3cm} L{3.5cm} L{3.5cm} L{3cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Solution} & \textbf{Points forts} & \textbf{Limites} & \textbf{Coût} \\
+    \midrule
+    LinkedIn Sales Navigator & Interface intuitive, ciblage & Manuel, $99$/mois, pas d'AO publics & Élevé \\
+    \addlinespace
+    Hunter.io & Enrichissement email & Pas de détection de signaux & Moyen \\
+    \addlinespace
+    Apollo.io & Base de données contacts & Données US, peu FR/TN & Élevé \\
+    \addlinespace
+    Veille manuelle BOAMP & Gratuit, officiel & Non automatisé, ~3h/semaine & Gratuit \\
+    \addlinespace
+    \textbf{LeadGen 360+} & \textbf{Multi-source, NLP, LLM, AO publics FR/EU} & En développement & \textbf{Open source} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Comparaison des solutions de génération de leads B2B}
+  \label{tab:existant}
+\end{table}
+
+\subsection{Solution proposée}
+
+\textbf{LeadGen Francophone 360+} est une plateforme entièrement automatisée qui~:
+
+\begin{enumerate}
+  \item Scrape \textbf{5 sources} en parallèle : LinkedIn (offres emploi + posts B2B),
+        BOAMP (marchés publics France), TED EU (marchés européens FR/BE/LU/CH) et Malt.fr ;
+  \item Qualifie chaque prospect avec un \textbf{score 0--100} basé sur des règles métier ;
+  \item Classe le texte via un modèle \textbf{NLP} (secteur + priorité) ;
+  \item Génère des \textbf{messages de prospection personnalisés} via LLM (Groq) ;
+  \item Automatise la collecte toutes les 12h via \textbf{n8n} et expose tout via une
+        \textbf{API REST FastAPI}.
+\end{enumerate}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Méthodologie de travail}
+
+\subsection{Choix de la méthodologie Scrum}
+
+Compte tenu de la nature itérative du projet (chaque collecteur est indépendant,
+les exigences évoluent selon les tests réels sur les APIs), nous avons adopté
+une approche \textbf{Scrum} adaptée.
+
+\subsection{Planification des sprints}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{C{1.5cm} L{4cm} L{5cm} C{2cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Sprint} & \textbf{Objectif} & \textbf{Livrables} & \textbf{Durée} \\
+    \midrule
+    S1 & Infrastructure & Docker, PostgreSQL, FastAPI squelette & 1 semaine \\
+    \addlinespace
+    S2 & Collecteurs publics & BOAMP + TED EU + pipeline ingest & 2 semaines \\
+    \addlinespace
+    S3 & LinkedIn & linkedin-api wrapper, hiring + B2B & 2 semaines \\
+    \addlinespace
+    S4 & NLP & Classifier secteur + priorité TF-IDF & 1 semaine \\
+    \addlinespace
+    S5 & LLM & Groq client + message generator & 1 semaine \\
+    \addlinespace
+    S6 & Automatisation & n8n workflows + API collect endpoints & 1 semaine \\
+    \addlinespace
+    S7 & Tests \& Résultats & 815 prospects validés, rapport & 1 semaine \\
+    \bottomrule
+  \end{tabular}
+  \caption{Planification Scrum du projet}
+  \label{tab:sprints}
+\end{table}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+
+Ce chapitre a posé le contexte du projet~: Solvinya Group a besoin d'automatiser
+sa veille commerciale B2B sur les marchés francophones. La solution LeadGen 360+
+répond à cette problématique en combinant scraping multi-source, NLP et génération
+de contenu par LLM. Le chapitre suivant détaille l'analyse des besoins et
+l'architecture conceptuelle du système.

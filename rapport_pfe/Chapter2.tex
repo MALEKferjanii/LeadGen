@@ -1,0 +1,323 @@
+\chapter{Analyse des besoins et architecture globale}
+\markboth{Chapitre 2}{Analyse des besoins}
+\setcounter{chapter}{2}
+\setcounter{section}{0}
+\minitoc
+\newpage
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+
+Ce chapitre présente l'analyse des besoins fonctionnels et non fonctionnels du
+système, les cas d'utilisation des différents acteurs, et l'architecture globale
+de la plateforme LeadGen 360+.
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Analyse des besoins}
+
+\subsection{Besoins fonctionnels}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{C{0.6cm} L{4.5cm} L{7.5cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{ID} & \textbf{Besoin} & \textbf{Description détaillée} \\
+    \midrule
+    BF1 & Collecte multi-source & Scraper automatiquement LinkedIn Jobs, LinkedIn B2B, BOAMP, TED EU, Malt.fr \\
+    \addlinespace
+    BF2 & Déduplication & Éviter d'ingérer deux fois le même prospect dans une fenêtre de 30 jours \\
+    \addlinespace
+    BF3 & Scoring & Attribuer un score 0--100 à chaque prospect selon le pays, la technologie, le secteur et un boost contextuel \\
+    \addlinespace
+    BF4 & Classification NLP & Classifier le texte libre des opportunités par secteur (10 classes) et priorité (HIGH/MED/LOW) \\
+    \addlinespace
+    BF5 & Génération de messages & Générer un message LinkedIn et un email personnalisés pour chaque opportunité via LLM \\
+    \addlinespace
+    BF6 & API REST & Exposer toutes les fonctionnalités via des endpoints FastAPI sécurisés \\
+    \addlinespace
+    BF7 & Automatisation & Déclencher la collecte toutes les 12h via des workflows n8n \\
+    \addlinespace
+    BF8 & Dashboard BI & Visualiser les prospects dans Metabase (filtres, KPIs, graphes) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Besoins fonctionnels du système}
+  \label{tab:bf}
+\end{table}
+
+\subsection{Besoins non fonctionnels}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{3.5cm} L{9cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Catégorie} & \textbf{Exigence} \\
+    \midrule
+    \textbf{Performance} & Pipeline d'ingestion $< 100$\,ms/prospect ; API $< 200$\,ms pour les lectures \\
+    \addlinespace
+    \textbf{Scalabilité} & Architecture stateless (FastAPI), base de données indexée, pool asyncpg \\
+    \addlinespace
+    \textbf{Fiabilité} & Déduplication robuste, retry avec backoff exponentiel (tenacity) sur les APIs externes \\
+    \addlinespace
+    \textbf{Sécurité} & Authentification API par clé secrète (X-API-Key), variables d'environnement, pas de credentials en clair \\
+    \addlinespace
+    \textbf{Discrétion} & Délais gaussiens anti-détection, rotation de comptes LinkedIn, respect des rate limits \\
+    \addlinespace
+    \textbf{Portabilité} & Déploiement Docker Compose en une commande sur tout système Linux/Windows/Mac \\
+    \addlinespace
+    \textbf{Maintenabilité} & Code Python 3.11 typé, architecture modulaire, Makefile pour toutes les opérations courantes \\
+    \bottomrule
+  \end{tabular}
+  \caption{Besoins non fonctionnels}
+  \label{tab:bnf}
+\end{table}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Acteurs du système et cas d'utilisation}
+
+\subsection{Identification des acteurs}
+
+\begin{itemize}
+  \item \textbf{Commercial Solvinya~:} consulte les prospects, génère les messages,
+        met à jour les statuts de conversion ;
+  \item \textbf{Administrateur système~:} configure les collecteurs, gère les comptes
+        LinkedIn, déclenche les collectes ;
+  \item \textbf{n8n (acteur automatique)~:} déclenche les collectes planifiées toutes
+        les 12h via l'API ;
+  \item \textbf{Sources externes~:} LinkedIn, BOAMP, TED EU, Malt.fr (acteurs passifs
+        fournissant les données).
+\end{itemize}
+
+\subsection{Diagramme des cas d'utilisation}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    actor/.style={draw=espritBlue!60, fill=lightBlue!30, rounded corners=4pt,
+                  minimum width=2.2cm, minimum height=0.8cm,
+                  font=\small\bfseries, align=center},
+    uc/.style={draw=espritGray!50, fill=boxBg, ellipse,
+               minimum width=3.5cm, minimum height=0.7cm,
+               font=\small, align=center},
+    arr/.style={-{Stealth[length=5pt]}, espritGray!70}
+  ]
+    \node[actor] (commercial) at (0, 4)   {Commercial\\Solvinya};
+    \node[actor] (admin)      at (0, 1.5) {Administrateur};
+    \node[actor] (n8n)        at (0, -1)  {n8n\\(automatique)};
+
+    \draw[draw=espritBlue!30, dashed, rounded corners=8pt]
+      (2, -2.5) rectangle (11.5, 5.5);
+    \node[font=\footnotesize\color{espritBlue}, anchor=north east]
+      at (11.5, 5.5) {Système LeadGen 360+};
+
+    \node[uc] (consulter) at (6.5, 5.0) {Consulter les prospects};
+    \node[uc] (generer)   at (6.5, 4.0) {Générer un message};
+    \node[uc] (classifier)at (6.5, 3.0) {Classifier un texte (NLP)};
+    \node[uc] (metabase)  at (6.5, 2.0) {Visualiser le dashboard};
+    \node[uc] (ingest)    at (6.5, 1.0) {Ingérer manuellement};
+    \node[uc] (collect)   at (6.5, 0.0) {Déclencher la collecte};
+    \node[uc] (configure) at (6.5,-1.0) {Configurer les collecteurs};
+    \node[uc] (auto)      at (6.5,-2.0) {Collecte auto (12h)};
+
+    \draw[arr] (commercial) -- (consulter);
+    \draw[arr] (commercial) -- (generer);
+    \draw[arr] (commercial) -- (classifier);
+    \draw[arr] (commercial) -- (metabase);
+    \draw[arr] (admin) -- (ingest);
+    \draw[arr] (admin) -- (collect);
+    \draw[arr] (admin) -- (configure);
+    \draw[arr] (n8n) -- (auto);
+  \end{tikzpicture}
+  \caption{Diagramme des cas d'utilisation}
+  \label{fig:ucd}
+\end{figure}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Architecture globale du système}
+
+\subsection{Vue macro}
+
+La figure~\vref{fig:arch_macro} présente l'architecture globale de la plateforme.
+Le système est organisé en 4 couches~: collecte, pipeline, stockage, et exposition.
+
+\begin{figure}[H]
+  \centering
+  %% ── styles locaux (sans paramètre de couleur pour éviter #1!N) ─────────────
+  \tikzset{
+    srcbox/.style ={draw=espritBlue!70, fill=lightBlue!40, rounded corners=4pt,
+                    minimum width=2.2cm, minimum height=1cm,
+                    font=\scriptsize\bfseries\color{darkBlue}, align=center, inner sep=4pt},
+    colbox/.style ={draw=darkGreen!70, fill=lightGreen!60, rounded corners=4pt,
+                    minimum width=2.2cm, minimum height=1cm,
+                    font=\scriptsize\bfseries\color{darkGreen}, align=center, inner sep=4pt},
+    pipbox/.style ={draw=darkBlue!70, fill=lightBlue!30, rounded corners=4pt,
+                    minimum width=2.2cm, minimum height=1cm,
+                    font=\scriptsize\bfseries\color{darkBlue}, align=center, inner sep=4pt},
+    dbbox/.style  ={draw=espritGray!60, fill=boxBg, rounded corners=4pt,
+                    minimum width=2.2cm, minimum height=1cm,
+                    font=\scriptsize\bfseries\color{espritGray}, align=center, inner sep=4pt},
+    expbox/.style ={draw=espritRed!70, fill=lightAmber!40, rounded corners=4pt,
+                    minimum width=2.2cm, minimum height=1cm,
+                    font=\scriptsize\bfseries\color{espritRed}, align=center, inner sep=4pt},
+    warnbox/.style={draw=espritRed!50, fill=warnColor, rounded corners=4pt,
+                    minimum width=2.2cm, minimum height=1cm,
+                    font=\scriptsize\bfseries\color{espritRed}, align=center, inner sep=4pt},
+    disbox/.style ={draw=espritGray!40, fill=espritGray!10, rounded corners=4pt,
+                    minimum width=2.2cm, minimum height=1cm,
+                    font=\scriptsize\bfseries\color{espritGray}, align=center, inner sep=4pt},
+    layerblue/.style ={draw=espritBlue!60, fill=lightBlue!15, rounded corners=6pt,
+                       minimum width=13cm, inner sep=10pt},
+    layergreen/.style={draw=darkGreen!60, fill=lightGreen!15, rounded corners=6pt,
+                       minimum width=13cm, inner sep=10pt},
+    layerdblue/.style={draw=darkBlue!60, fill=lightBlue!10, rounded corners=6pt,
+                       minimum width=13cm, inner sep=10pt},
+    layergray/.style ={draw=espritGray!50, fill=boxBg, rounded corners=6pt,
+                       minimum width=13cm, inner sep=10pt},
+    layerred/.style  ={draw=espritRed!60, fill=lightAmber!15, rounded corners=6pt,
+                       minimum width=13cm, inner sep=10pt},
+    marr/.style={-{Stealth[length=6pt]}, espritGray!70, thick},
+  }
+  \begin{tikzpicture}[node distance=0.4cm]
+    %% ── Couche 1 : Sources ─────────────────────────────────────────────────────
+    \node[layerblue,
+          label={[font=\small\bfseries\color{espritBlue}]left:Sources}]
+      (src_layer) at (0, 6.5) {};
+    \node[srcbox] (li_h)  at (-4.8, 6.5) {LinkedIn\\Jobs};
+    \node[srcbox] (li_b)  at (-2.4, 6.5) {LinkedIn\\B2B Posts};
+    \node[srcbox] (boamp) at ( 0,   6.5) {BOAMP\\(France)};
+    \node[srcbox] (ted)   at ( 2.4, 6.5) {TED EU\\FR/BE/LU/CH};
+    \node[warnbox] (malt) at ( 4.8, 6.5) {Malt.fr\\{\tiny Cloudflare (!)}};
+
+    %% ── Couche 2 : Collecteurs ─────────────────────────────────────────────────
+    \node[layergreen,
+          label={[font=\small\bfseries\color{darkGreen}]left:Collecteurs}]
+      (col_layer) at (0, 4.5) {};
+    \node[colbox] (c1) at (-4.8, 4.5) {linkedin\\\_hiring.py};
+    \node[colbox] (c2) at (-2.4, 4.5) {linkedin\\\_b2b.py};
+    \node[colbox] (c3) at ( 0,   4.5) {boamp.py};
+    \node[colbox] (c4) at ( 2.4, 4.5) {ted.py};
+    \node[disbox] (c5) at ( 4.8, 4.5) {malt.py\\{\tiny bloqué}};
+    \node[colbox, minimum width=3.5cm] (runall) at (0, 3.6)
+      {run\_all.py (orchestrateur)};
+
+    %% ── Couche 3 : Pipeline ────────────────────────────────────────────────────
+    \node[layerdblue,
+          label={[font=\small\bfseries\color{darkBlue}]left:Pipeline}]
+      (pip_layer) at (0, 2.3) {};
+    \node[pipbox] (norm)   at (-3.6, 2.3) {Normalisation};
+    \node[pipbox] (dedup)  at (-1.2, 2.3) {Déduplication\\30 jours};
+    \node[pipbox] (score)  at ( 1.2, 2.3) {Scoring\\0--100};
+    \node[pipbox] (insert) at ( 3.6, 2.3) {INSERT\\PostgreSQL};
+
+    %% ── Couche 4 : DB ──────────────────────────────────────────────────────────
+    \node[layergray,
+          label={[font=\small\bfseries\color{espritGray}]left:Stockage}]
+      (db_layer) at (0, 0.7) {};
+    \node[dbbox] (companies) at (-4,   0.7) {companies};
+    \node[dbbox] (opps)      at (-1.5, 0.7) {opportunities};
+    \node[dbbox] (contacts)  at ( 1,   0.7) {contacts};
+    \node[dbbox] (leads)     at ( 3.5, 0.7) {leads};
+
+    %% ── Couche 5 : Exposition ──────────────────────────────────────────────────
+    \node[layerred,
+          label={[font=\small\bfseries\color{espritRed}]left:Exposition}]
+      (exp_layer) at (0, -1.0) {};
+    \node[expbox] (api) at (-3.6, -1.0) {FastAPI\\:8000};
+    \node[expbox] (n8n) at (-1.2, -1.0) {n8n\\:5678};
+    \node[expbox] (mb)  at ( 1.2, -1.0) {Metabase\\:3000};
+    \node[expbox] (nlp) at ( 3.6, -1.0) {NLP \&\\LLM};
+
+    %% ── Flèches ────────────────────────────────────────────────────────────────
+    \draw[marr] (li_h)  -- (c1);
+    \draw[marr] (li_b)  -- (c2);
+    \draw[marr] (boamp) -- (c3);
+    \draw[marr] (ted)   -- (c4);
+    \draw[marr] (c1) -- (runall);
+    \draw[marr] (c2) -- (runall);
+    \draw[marr] (c3) -- (runall);
+    \draw[marr] (c4) -- (runall);
+    \draw[marr] (runall) -- (norm);
+    \draw[marr] (norm)   -- (dedup);
+    \draw[marr] (dedup)  -- (score);
+    \draw[marr] (score)  -- (insert);
+    \draw[marr] (insert) -- (opps);
+    \draw[marr] (opps)   -- (api);
+    \draw[marr] (api)    -- (nlp);
+  \end{tikzpicture}
+  \caption{Architecture macro du système LeadGen 360+}
+  \label{fig:arch_macro}
+\end{figure}
+
+\subsection{Technologies et choix techniques}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{3cm} L{3.5cm} L{6.5cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Composant} & \textbf{Technologie} & \textbf{Justification} \\
+    \midrule
+    Scraping LinkedIn & linkedin-api 2.x & API non officielle, mobile endpoints, plus discrets que Selenium \\
+    \addlinespace
+    Requêtes HTTP & httpx (async) & Client HTTP asynchrone, performances élevées, support HTTP/2 \\
+    \addlinespace
+    API REST & FastAPI + uvicorn & Typage automatique, Swagger intégré, performances ASGI \\
+    \addlinespace
+    Base de données & PostgreSQL 15 & ACID, tableaux natifs (TEXT[]), JSONB, full-text search \\
+    \addlinespace
+    Pilote DB async & asyncpg & Le plus rapide des pilotes PostgreSQL Python \\
+    \addlinespace
+    NLP & scikit-learn TF-IDF & Accuracy 75\% sur corpus IT; surpasse sentence-transformers \\
+    \addlinespace
+    LLM & Groq (llama-3.1-8b) & 1--3s, gratuit jusqu'à 30 req/min, fallback Ollama local \\
+    \addlinespace
+    Automatisation & n8n (auto-hébergé) & Open source, interface visuelle, webhooks, scheduler \\
+    \addlinespace
+    Conteneurisation & Docker Compose & 5 services en une commande, volumes persistants \\
+    \addlinespace
+    Dashboard BI & Metabase & Connexion directe PostgreSQL, no-code, export CSV \\
+    \bottomrule
+  \end{tabular}
+  \caption{Stack technique et justifications}
+  \label{tab:stack}
+\end{table}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Les 5 types de signaux B2B}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{L{3.2cm} L{5.5cm} L{3.8cm}}
+    \toprule
+    \rowcolor{lightBlue!50}
+    \textbf{Signal} & \textbf{Signification} & \textbf{Source} \\
+    \midrule
+    \texttt{b2b\_tender} & Appel d'offres public ou privé pour un projet IT
+      & BOAMP, TED EU, LinkedIn B2B \\
+    \addlinespace
+    \texttt{b2b\_rfp} & Demande de Proposition formelle (RFP/DDP)
+      & LinkedIn B2B \\
+    \addlinespace
+    \texttt{b2b\_subcontracting} & Recherche prestataire / sous-traitance
+      & LinkedIn B2B, Malt \\
+    \addlinespace
+    \texttt{b2b\_partnership} & Partenariat, co-traitance, consortium
+      & LinkedIn B2B \\
+    \addlinespace
+    \texttt{outsourcing\_signal} & Entreprise non-IT recrutant un dev IT~: cible
+      pour proposition d'externalisation
+      & LinkedIn Jobs \\
+    \bottomrule
+  \end{tabular}
+  \caption{Les 5 types de signaux détectés}
+  \label{tab:signal_types}
+\end{table}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+
+L'analyse des besoins révèle un système composé de 5 collecteurs indépendants,
+d'un pipeline d'ingestion unifié, d'un module NLP, d'un générateur LLM et d'une
+couche d'exposition multi-canal (API, n8n, Metabase). Le chapitre suivant
+détaille la conception technique de chacun de ces composants.
