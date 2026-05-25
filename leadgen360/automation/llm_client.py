@@ -53,7 +53,7 @@ class LLMClient:
                 json={
                     "model": settings.groq_model,
                     "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 350,
+                    "max_tokens": 500,
                     "temperature": 0.7,
                 },
             )

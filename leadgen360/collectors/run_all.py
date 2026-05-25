@@ -1,13 +1,23 @@
 """
 Lance tous les collecteurs en séquence.
+
+Sources actives :
+  - linkedin      : offres emploi IT → signal externalisation (requiert cookies)
+  - linkedin_b2b  : posts B2B → RFP, AO, sous-traitance (requiert cookies)
+  - boamp         : marchés publics France (API officielle, gratuit)
+  - ted           : marchés publics EU — FR, BE, LU, CH (API officielle, gratuit)
+  - codeur        : missions freelance codeur.com (scraping HTML, FR)
+  - twago         : missions freelance twagofreelance.com (scraping HTML, FR/BE/CH)
+
 Usage:
-  python -m collectors.run_all               # collecte complète
-  python -m collectors.run_all --dry-run     # simulation sans DB
-  python -m collectors.run_all --source linkedin      # signaux externalisation (offres emploi)
-  python -m collectors.run_all --source linkedin_b2b  # signaux directs B2B (posts RFP/AO/etc.)
+  python -m collectors.run_all
+  python -m collectors.run_all --dry-run
   python -m collectors.run_all --source boamp
   python -m collectors.run_all --source ted
-  python -m collectors.run_all --source malt
+  python -m collectors.run_all --source codeur
+  python -m collectors.run_all --source twago
+  python -m collectors.run_all --source linkedin
+  python -m collectors.run_all --source linkedin_b2b
 """
 import asyncio
 import argparse
@@ -18,8 +28,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from loguru import logger
 from collectors.boamp import BoampCollector
-from collectors.malt import MaltCollector
 from collectors.ted import TedCollector
+from collectors.codeur import CodeurCollector
+from collectors.twago import TwagoCollector
 
 
 async def run_all(dry_run: bool = False, source_filter: str | None = None):
@@ -59,8 +70,7 @@ async def run_all(dry_run: bool = False, source_filter: str | None = None):
     # ── BOAMP ─────────────────────────────────────────────────────────────────
     if not source_filter or source_filter == "boamp":
         try:
-            boamp = BoampCollector()
-            n = await boamp.collect(dry_run=dry_run)
+            n = await BoampCollector().collect(dry_run=dry_run)
             results["boamp"] = n
         except Exception as e:
             logger.error(f"BOAMP collection failed: {e}")
@@ -69,26 +79,33 @@ async def run_all(dry_run: bool = False, source_filter: str | None = None):
     # ── TED (EU Tenders) ──────────────────────────────────────────────────────
     if not source_filter or source_filter == "ted":
         try:
-            ted = TedCollector()
-            n = await ted.collect(dry_run=dry_run)
+            n = await TedCollector().collect(dry_run=dry_run)
             results["ted"] = n
         except Exception as e:
             logger.error(f"TED collection failed: {e}")
             results["ted"] = 0
 
-    # ── Malt ──────────────────────────────────────────────────────────────────
-    if not source_filter or source_filter == "malt":
+    # ── Codeur.com ────────────────────────────────────────────────────────────
+    if not source_filter or source_filter == "codeur":
         try:
-            malt = MaltCollector()
-            n = await malt.collect(dry_run=dry_run)
-            results["malt"] = n
+            n = await CodeurCollector().collect(dry_run=dry_run)
+            results["codeur"] = n
         except Exception as e:
-            logger.error(f"Malt collection failed: {e}")
-            results["malt"] = 0
+            logger.error(f"Codeur collection failed: {e}")
+            results["codeur"] = 0
+
+    # ── TwagoFreelance.com ────────────────────────────────────────────────────
+    if not source_filter or source_filter == "twago":
+        try:
+            n = await TwagoCollector().collect(dry_run=dry_run)
+            results["twago"] = n
+        except Exception as e:
+            logger.error(f"Twago collection failed: {e}")
+            results["twago"] = 0
 
     total = sum(results.values())
     logger.success(
-        f"Collecte terminée | "
+        "Collecte terminée | "
         + " | ".join(f"{src}={n}" for src, n in results.items())
         + f" | TOTAL={total}"
     )
@@ -98,6 +115,9 @@ async def run_all(dry_run: bool = False, source_filter: str | None = None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LeadGen 360+ — Run All Collectors")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--source", choices=["linkedin", "linkedin_b2b", "boamp", "malt", "ted"])
+    parser.add_argument(
+        "--source",
+        choices=["linkedin", "linkedin_b2b", "boamp", "ted", "codeur", "twago"],
+    )
     args = parser.parse_args()
     asyncio.run(run_all(dry_run=args.dry_run, source_filter=args.source))

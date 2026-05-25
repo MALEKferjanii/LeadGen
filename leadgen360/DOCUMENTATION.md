@@ -37,7 +37,7 @@ Solvinya Group est une ESN (Entreprise de Services Numériques). Son équipe com
 
 LeadGen 360+ est un pipeline entièrement automatisé qui :
 
-1. **Scrape** 5 sources de données différentes (LinkedIn, BOAMP, TED EU, Malt) toutes les 12 heures
+1. **Scrape** 6 sources de données différentes (LinkedIn, BOAMP, TED EU, Codeur, Twago) toutes les 12 heures
 2. **Qualifie** chaque prospect avec un score 0-100 basé sur des règles métier déterministes
 3. **Classe** les prospects par secteur et priorité via un modèle NLP
 4. **Génère** des messages LinkedIn et emails de prospection personnalisés via LLM (Groq)
@@ -56,7 +56,7 @@ LeadGen 360+ est un pipeline entièrement automatisé qui :
 │                      │ Ex: banque qui publie un appel à candidatures DSI   │              │
 ├──────────────────────┼─────────────────────────────────────────────────────┼──────────────┤
 │ b2b_subcontracting   │ Recherche prestataire / sous-traitance / freelance   │ LinkedIn B2B │
-│                      │ Ex: "Recherche prestataire Java pour projet 6 mois"  │ Malt         │
+│                      │ Ex: "Recherche prestataire Java pour projet 6 mois"  │ Codeur, Twago│
 ├──────────────────────┼─────────────────────────────────────────────────────┼──────────────┤
 │ b2b_partnership      │ Partenariat, co-traitance, consortium               │ LinkedIn B2B │
 │                      │ Ex: "Partenariat stratégique avec cabinet IT"        │              │
@@ -77,23 +77,23 @@ LeadGen 360+ est un pipeline entièrement automatisé qui :
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                         SOURCES EXTERNES                                      ║
 ║                                                                                ║
-║  ┌─────────────┐  ┌──────────────┐  ┌────────┐  ┌────────┐  ┌──────────┐   ║
-║  │ LinkedIn    │  │ LinkedIn     │  │ BOAMP  │  │ TED EU │  │ Malt.fr  │   ║
-║  │ Jobs        │  │ Posts (B2B)  │  │ France │  │FR/BE/  │  │(Freelan- │   ║
-║  │(offres      │  │(publications │  │(marchés│  │LU/CH   │  │ ce — ⚠️  │   ║
-║  │ emploi IT)  │  │ entreprises) │  │publics)│  │publics)│  │ Cloudfl.)│   ║
-║  └──────┬──────┘  └──────┬───────┘  └───┬────┘  └───┬────┘  └────┬─────┘   ║
-╚═════════╪═══════════════╪══════════════╪═══════════╪════════════╪══════════╝
+║  ┌─────────────┐  ┌──────────────┐  ┌────────┐  ┌────────┐  ┌──────────┐  ┌──────────┐   ║
+║  │ LinkedIn    │  │ LinkedIn     │  │ BOAMP  │  │ TED EU │  │ Codeur   │  │ Twago    │   ║
+║  │ Jobs        │  │ Posts (B2B)  │  │ France │  │FR/BE/  │  │ .com     │  │Freelance │   ║
+║  │(offres      │  │(publications │  │(marchés│  │LU/CH   │  │(missions │  │(missions │   ║
+║  │ emploi IT)  │  │ entreprises) │  │publics)│  │publics)│  │ freelance│  │ FR/BE/CH)│   ║
+║  └──────┬──────┘  └──────┬───────┘  └───┬────┘  └───┬────┘  └────┬─────┘  └────┬─────┘   ║
+╚═════════╪═══════════════╪══════════════╪═══════════╪════════════╪═════════════╪═══════════╝
           │               │              │           │            │
           ▼               ▼              ▼           ▼            ▼
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                      COUCHE COLLECTEURS (Python)                              ║
 ║                                                                                ║
-║  linkedin_hiring.py  linkedin_b2b.py  boamp.py   ted.py      malt.py        ║
-║  (async, session     (regex scoring   (httpx GET  (httpx POST (httpx GET     ║
-║   pooling 2 comptes)  sur posts)       open data)  expert QL)  Cloudflare⚠️) ║
-║         │                  │              │           │            │           ║
-║         └──────────────────┴──────────────┴───────────┴────────────┘          ║
+║  linkedin_hiring.py  linkedin_b2b.py  boamp.py   ted.py      codeur.py  twago.py    ║
+║  (async, session     (regex scoring   (httpx GET  (httpx POST (httpx GET  (httpx GET  ║
+║   pooling 2 comptes)  sur posts)       open data)  expert QL)  HTML+JSON)  FR/BE/CH) ║
+║         │                  │              │           │            │           │        ║
+║         └──────────────────┴──────────────┴───────────┴────────────┴───────────┘       ║
 ║                                     │                                          ║
 ║                              run_all.py                                        ║
 ║                        (orchestrateur séquentiel                               ║
@@ -511,18 +511,98 @@ TOTAL          422
 
 ---
 
-### 3.5 Malt — Missions Freelance (en attente)
+### 3.5 Codeur.com — Missions Freelance IT France
 
-**Fichier** : `collectors/malt.py`  
-**Signal prévu** : `b2b_subcontracting`  
-**Statut** : bloqué par Cloudflare (retourne HTTP 403)
+**Fichier** : `collectors/codeur.py`  
+**Signal produit** : `b2b_subcontracting`  
+**Source** : Plateforme publique, pas d'authentification requise  
+**URL** : `https://www.codeur.com/projets`
+
+#### Logique B2B
+
+Une entreprise qui publie une mission freelance sur Codeur.com a un **besoin IT confirmé avec budget disponible**. C'est un signal de sous-traitance direct : la société cherche un prestataire externe, Solvinya peut se positionner.
+
+#### Catégories surveillées
 
 ```
-GET https://www.malt.fr/search?query=COBOL
-→ HTTP 403 Forbidden (Cloudflare protection)
+Slug                          Technologie        Secteur           Boost
+────────────────────────────  ─────────────────  ────────────────  ─────
+dev-logiciel                  Python             Tech              12
+dev-web                       React              Tech/e-commerce    8
+reseau-systemes-securite      DevOps             Tech              10
+dev-mobile                    React              Tech               7
+erp-crm                       SAP                Industrie/RH      12
+intelligence-artificielle     Machine Learning   Tech/IA           15
+big-data                      Data Engineer      Tech/IA           12
+java                          Java               Finance/Banque    10
 ```
 
-**Solution planifiée** : Playwright + `playwright-stealth` pour émulation complète du navigateur. Une mission freelance sur Malt = besoin confirmé + budget disponible + délai court → signal très fort.
+#### Flux technique
+
+```
+GET https://www.codeur.com/projets?category={slug}&page=1
+    │
+    ├─ Tentative 1 : extraction JSON embarqué (window.__INITIAL_STATE__)
+    │   → projets[].title, .user.company, .description, .budget, .slug
+    │
+    └─ Fallback : regex HTML sur <article class="project*">
+        → h2/h3 → titre
+        → patron budget : \d[\d\s]*€
+        → href="/projets/{slug}"
+```
+
+Délai entre requêtes : 2 secondes.
+
+---
+
+### 3.6 TwagoFreelance.com — Missions Freelance IT Europe Francophone
+
+**Fichier** : `collectors/twago.py`  
+**Signal produit** : `b2b_subcontracting`  
+**Source** : Plateforme publique, pas d'authentification requise  
+**URL** : `https://www.twagofreelance.com/fr/projets-freelance`
+
+#### Logique B2B
+
+Twago couvre la France, la Belgique et la Suisse — des marchés prioritaires pour Solvinya. Chaque mission publiée = besoin IT confirmé + budget disponible + délai court.
+
+#### Catégories et pays surveillés
+
+```
+Slug                          Technologie        Secteur     Boost  Pays
+────────────────────────────  ─────────────────  ──────────  ─────  ────
+informatique                  Python             Tech          12    FR
+developpement-web             React              Tech/e-comm    8    FR
+java                          Java               Finance/Banq  10    FR
+devops-cloud                  DevOps             Tech          10    FR
+data-science                  Machine Learning   Tech/IA       15    FR
+erp-sap                       SAP                Industrie/RH  12    FR
+securite-informatique         DevOps             Tech          10    BE
+intelligence-artificielle     Machine Learning   Tech/IA       15    BE
+developpement-logiciel        Python             Tech          12    CH
+```
+
+#### Flux technique
+
+```
+GET https://www.twagofreelance.com/fr/projets-freelance/{slug}
+    │
+    ├─ Tentative 1 : extraction JSON embarqué
+    │   Patterns testés :
+    │   - window.__INITIAL_DATA__ = {...}
+    │   - var pageData = {...}
+    │   - <script type="application/json">
+    │   → projets[].title, .company.name, .description, .budget, .url
+    │
+    ├─ 404 → Fallback URL : GET /fr/projets-freelance?q={technology}
+    │
+    └─ Fallback HTML : regex sur <article|div class="*project|mission|offer*">
+        → h1-h4 → titre
+        → patron budget : \d[\d\s]*€
+        → href="/.*projet|project|mission.*"
+```
+
+Délai entre requêtes : 2 secondes.
 
 ---
 
@@ -544,7 +624,13 @@ GET https://www.malt.fr/search?query=COBOL
 │ ted              │ b2b_tender        │ FR BE LU CH   │ 12h (n8n)  │ ✅ Actif   │
 │                  │                   │ (public EU)   │            │            │
 ├──────────────────┼───────────────────┼───────────────┼────────────┼────────────┤
-│ malt             │ b2b_subcontracting│ FR            │ —          │ ⚠️ Bloqué  │
+│ codeur           │ b2b_subcontracting│ FR            │ 12h (n8n)  │ ✅ Actif   │
+├──────────────────┼───────────────────┼───────────────┼────────────┼────────────┤
+│ twago            │ b2b_subcontracting│ FR BE CH      │ 12h (n8n)  │ ✅ Actif   │
+├──────────────────┼───────────────────┼───────────────┼────────────┼────────────┤
+│ malt             │ b2b_subcontracting│ FR            │ —          │ ❌ Retiré  │
+│                  │                   │               │            │ (Cloudflare│
+│                  │                   │               │            │  403)      │
 └──────────────────┴───────────────────┴───────────────┴────────────┴────────────┘
 ```
 
@@ -770,9 +856,7 @@ Accuracy test set (priorité)        85%
 
 ```bash
 # Lancer l'entraînement (doit atteindre >= 75% CV pour valider)
-make train
-# ou directement :
-LEADGEN_USE_TFIDF=1 python -m nlp.trainer
+docker compose exec api python -m nlp.trainer
 
 # Résultat attendu :
 # Cross-val 75.0% >= 75%. Modeles prets pour la production.
@@ -1404,7 +1488,7 @@ CREATE TABLE opportunities (
     opportunity_type VARCHAR(50),         -- b2b_tender / b2b_rfp / outsourcing_signal / ...
     technologies     TEXT[],              -- array: ["COBOL", "Java"]
     source_url       VARCHAR(1000),
-    source_platform  VARCHAR(80),         -- boamp / ted / linkedin_jobs / linkedin_b2b / malt
+    source_platform  VARCHAR(80),         -- boamp / ted / linkedin_jobs / linkedin_b2b / codeur / twago
     country          CHAR(2),
     priority_score   SMALLINT,            -- 0-100
     sector_label     VARCHAR(80),
@@ -1678,16 +1762,16 @@ LEADGEN_USE_TFIDF=1 python -m nlp.trainer
 
 ```bash
 # Test BOAMP sans écriture DB (recommandé pour vérifier que tout fonctionne)
-make collect-boamp-dry
+docker compose exec api python -m collectors.run_all --dry-run --source boamp
 
 # Si OK → collecte réelle BOAMP
-make collect-boamp
+docker compose exec api python -m collectors.run_all --source boamp
 
 # Collecte TED (marchés publics EU)
-make collect-ted
+docker compose exec api python -m collectors.run_all --source ted
 
 # Vérifier les résultats
-make db-stats
+docker compose exec postgres psql -U leadgen -d leadgen360 -c "SELECT country, sector_label, count(*), round(avg(priority_score)) as avg_score FROM opportunities GROUP BY country, sector_label ORDER BY count DESC;"
 ```
 
 ---
@@ -1730,8 +1814,8 @@ make db-stats
 | `No module named 'numpy'` | Venv non activé ou pip incomplet | `source .venv/bin/activate && pip install numpy scipy scikit-learn` |
 | LinkedIn `CHALLENGE_REQUIRED` | Vérification humaine demandée | Se connecter manuellement sur linkedin.com depuis le navigateur, puis réessayer |
 | `Groq 400` | Modèle déprécié ou mauvais model ID | Vérifier `GROQ_MODEL=llama-3.1-8b-instant` dans `.env` |
-| Malt retourne 0 | Cloudflare 403 | Normal — nécessite Playwright stealth (évolution future) |
-| API ne démarre pas | Code mis à jour, image obsolète | `make rebuild-api` (reconstruit l'image Docker) |
+| Codeur/Twago retourne 0 | Site a changé sa structure HTML | Vérifier les patterns regex dans `_parse_html()` — le site peut avoir redesigné ses blocs projet |
+| API ne démarre pas | Code mis à jour, image obsolète | `docker compose build api && docker compose up -d api` |
 | n8n ne joind pas l'API | URL Docker incorrecte | Utiliser `http://leadgen_api:8000` (pas `localhost`) dans n8n |
 | Metabase DB refused | Host incorrect | Mettre `postgres` comme Host (pas `localhost`) |
 
@@ -1743,23 +1827,23 @@ make db-stats
 
 ```bash
 # 1. S'assurer que les services tournent
-make up
-make status
+docker compose up -d
+curl http://localhost:8000/health && docker compose ps
 
 # 2. Test BOAMP — aperçu sans écrire en DB
-make collect-boamp-dry
+docker compose exec api python -m collectors.run_all --dry-run --source boamp
 # → affiche les marchés publics IT détectés
 
 # 3. Collecte BOAMP réelle
-make collect-boamp
+docker compose exec api python -m collectors.run_all --source boamp
 # → attendu : ~215-236 prospects ingérés
 
 # 4. Collecte TED — marchés publics EU
-make collect-ted
+docker compose exec api python -m collectors.run_all --source ted
 # → attendu : ~422 prospects (FR+BE+LU+CH)
 
 # 5. Voir les résultats
-make db-stats
+docker compose exec postgres psql -U leadgen -d leadgen360 -c "SELECT country, sector_label, count(*), round(avg(priority_score)) as avg_score FROM opportunities GROUP BY country, sector_label ORDER BY count DESC;"
 # Résultat attendu :
 # b2b_tender / boamp / FR  : 236 prospects, score moyen 66
 # b2b_tender / ted   / FR  : 145 prospects
@@ -1774,8 +1858,8 @@ make db-stats
 
 ```bash
 # 1. Collecte LinkedIn (offres emploi IT → outsourcing_signal)
-make collect-linkedin-dry    # Vérifier sans écrire
-make collect-linkedin        # Collecter pour de vrai
+docker compose exec api python -m collectors.run_all --dry-run --source linkedin    # Vérifier sans écrire
+docker compose exec api python -m collectors.run_all --source linkedin               # Collecter pour de vrai
 
 # 2. Injecter manuellement un prospect COBOL de démo
 curl -X POST http://localhost:8000/api/ingest \
@@ -1895,38 +1979,41 @@ docker compose logs -f api | grep -E "INFO|SUCCESS|WARNING|ERROR"
 
 ```bash
 # ── Services Docker ──────────────────────────────────────────────────────────
-make up                       # Démarrer tous les services
-make down                     # Arrêter tous les services
-make logs                     # Logs temps réel de l'API
-make status                   # curl /health + docker compose ps
-make rebuild-api              # Reconstruire l'image API (après modif Python)
+docker compose up -d                                      # Démarrer tous les services
+docker compose down                                       # Arrêter tous les services
+docker compose logs -f api                                # Logs temps réel de l'API
+curl http://localhost:8000/health && docker compose ps    # curl /health + statut services
+docker compose build api && docker compose up -d api      # Reconstruire l'image API (après modif Python)
 
 # ── Collecte ─────────────────────────────────────────────────────────────────
-make collect                  # Collecte complète (tous les collecteurs)
-make collect-dry              # Simulation sans écriture DB
-make collect-linkedin         # LinkedIn Jobs uniquement (outsourcing_signal)
-make collect-linkedin-dry     # LinkedIn Jobs — dry run
-make collect-linkedin-b2b     # LinkedIn Posts B2B uniquement
-make collect-linkedin-b2b-dry # LinkedIn B2B — dry run
-make collect-boamp            # BOAMP (marchés publics France)
-make collect-boamp-dry        # BOAMP — dry run
-make collect-ted              # TED EU (FR/BE/LU/CH)
-make collect-ted-dry          # TED — dry run
-make collect-malt             # Malt (actuellement bloqué Cloudflare)
+docker compose exec api python -m collectors.run_all                              # Collecte complète
+docker compose exec api python -m collectors.run_all --dry-run                    # Simulation sans écriture DB
+docker compose exec api python -m collectors.run_all --source linkedin            # LinkedIn Jobs uniquement
+docker compose exec api python -m collectors.run_all --dry-run --source linkedin  # LinkedIn Jobs — dry run
+docker compose exec api python -m collectors.run_all --source linkedin_b2b        # LinkedIn Posts B2B
+docker compose exec api python -m collectors.run_all --dry-run --source linkedin_b2b  # LinkedIn B2B — dry run
+docker compose exec api python -m collectors.run_all --source boamp              # BOAMP (marchés publics France)
+docker compose exec api python -m collectors.run_all --dry-run --source boamp    # BOAMP — dry run
+docker compose exec api python -m collectors.run_all --source ted                # TED EU (FR/BE/LU/CH)
+docker compose exec api python -m collectors.run_all --dry-run --source ted      # TED — dry run
+docker compose exec api python -m collectors.run_all --source codeur             # Codeur.com (missions freelance France)
+docker compose exec api python -m collectors.run_all --dry-run --source codeur   # Codeur — dry run
+docker compose exec api python -m collectors.run_all --source twago              # TwagoFreelance.com (missions FR/BE/CH)
+docker compose exec api python -m collectors.run_all --dry-run --source twago    # Twago — dry run
 
 # ── API (déclenchement HTTP) ─────────────────────────────────────────────────
-make trigger-collect          # POST /api/collect/all via curl
-make trigger-linkedin         # POST /api/collect/linkedin via curl
+curl -X POST http://localhost:8000/api/collect/all -H "X-API-Key: leadgen360_demo_secret_2024"      # POST /api/collect/all
+curl -X POST http://localhost:8000/api/collect/linkedin -H "X-API-Key: leadgen360_demo_secret_2024" # POST /api/collect/linkedin
 
 # ── NLP ──────────────────────────────────────────────────────────────────────
-make train                    # Entraîner les modèles NLP (LEADGEN_USE_TFIDF=1)
+docker compose exec api python -m nlp.trainer            # Entraîner les modèles NLP
 
 # ── Base de données ──────────────────────────────────────────────────────────
-make db-shell                 # Shell psql interactif
-make db-stats                 # Stats par source / pays / type / score
+docker compose exec postgres psql -U leadgen -d leadgen360   # Shell psql interactif
+docker compose exec postgres psql -U leadgen -d leadgen360 -c "SELECT country, sector_label, count(*), round(avg(priority_score)) as avg_score FROM opportunities GROUP BY country, sector_label ORDER BY count DESC;"  # Stats
 
 # ── Tests ────────────────────────────────────────────────────────────────────
-make test                     # pytest (tests API, NLP, pipeline)
+docker compose exec api pytest tests/ -v --tb=short      # pytest (tests API, NLP, pipeline)
 ```
 
 ---
@@ -2010,7 +2097,8 @@ leadgen360/
 │   ├── session_manager.py      # Pool de comptes LinkedIn, rotation
 │   ├── boamp.py                # API BOAMP open data
 │   ├── ted.py                  # API TED EU (POST expert query)
-│   ├── malt.py                 # Malt.fr (bloqué Cloudflare)
+│   ├── codeur.py               # Codeur.com (missions freelance IT France)
+│   ├── twago.py                # TwagoFreelance.com (missions IT FR/BE/CH)
 │   └── run_all.py              # Orchestrateur CLI (argparse --source)
 │
 ├── pipeline/
@@ -2054,7 +2142,7 @@ leadgen360/
 ├── .env                        # Variables d'environnement (NE PAS committer)
 ├── .env.example                # Template avec toutes les variables commentées
 ├── docker-compose.yml          # 5 services : postgres, redis, n8n, metabase, api
-├── Makefile                    # Commandes courtes (make collect, make up, …)
+├── Makefile                    # Référence des commandes (voir section 13 pour les équivalents directs)
 └── pyproject.toml              # Métadonnées Python + dépendances
 ```
 

@@ -104,6 +104,30 @@ services:
     build:
       context: .
       dockerfile: api/Dockerfile
+    develop:
+      watch:
+        - action: sync
+          path: ./api
+          target: /app/api
+        - action: sync
+          path: ./pipeline
+          target: /app/pipeline
+        - action: sync
+          path: ./nlp
+          target: /app/nlp
+        - action: sync
+          path: ./collectors
+          target: /app/collectors
+        - action: sync
+          path: ./db
+          target: /app/db
+        - action: sync
+          path: ./automation
+          target: /app/automation
+        - action: rebuild
+          path: ./pyproject.toml
+        - action: rebuild
+          path: ./api/Dockerfile
     container_name: leadgen_api
     restart: unless-stopped
     ports:

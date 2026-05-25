@@ -22,7 +22,7 @@ from sklearn.pipeline import Pipeline
 import joblib
 from loguru import logger
 
-MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
+MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 MODELS_DIR = Path("nlp/models")
 
 _sentence_transformer = None
@@ -201,12 +201,12 @@ class OpportunityClassifier:
             from sklearn.calibration import CalibratedClassifierCV
 
             logger.info("Entraînement classificateur secteur (LinearSVC)...")
-            base_sec = LinearSVC(C=1.0, max_iter=5000, random_state=42)
+            base_sec = LinearSVC(C=3.0, max_iter=5000, random_state=42)
             self.sector_clf = CalibratedClassifierCV(base_sec, cv=3)
             self.sector_clf.fit(X, y_sector)
 
             logger.info("Entraînement classificateur tech_stack (LinearSVC)...")
-            base_tech = LinearSVC(C=1.0, max_iter=5000, random_state=42)
+            base_tech = LinearSVC(C=2.0, max_iter=5000, random_state=42)
             self.tech_clf = CalibratedClassifierCV(base_tech, cv=3)
             self.tech_clf.fit(X, y_tech)
 
@@ -215,16 +215,22 @@ class OpportunityClassifier:
             self.priority_clf = CalibratedClassifierCV(base_pri, cv=3)
             self.priority_clf.fit(X, y_priority)
         else:
+            from sklearn.svm import LinearSVC
+            from sklearn.calibration import CalibratedClassifierCV
+
             logger.info("Entraînement classificateur secteur...")
-            self.sector_clf = LogisticRegression(C=1.0, max_iter=1000, random_state=42)
+            base_sec = LinearSVC(C=5.0, max_iter=5000, random_state=42)
+            self.sector_clf = CalibratedClassifierCV(base_sec, cv=3)
             self.sector_clf.fit(X, y_sector)
 
             logger.info("Entraînement classificateur tech_stack...")
-            self.tech_clf = LogisticRegression(C=1.0, max_iter=1000, random_state=42)
+            base_tech = LinearSVC(C=5.0, max_iter=5000, random_state=42)
+            self.tech_clf = CalibratedClassifierCV(base_tech, cv=3)
             self.tech_clf.fit(X, y_tech)
 
             logger.info("Entraînement classificateur priorité...")
-            self.priority_clf = LogisticRegression(C=2.0, max_iter=1000, random_state=42)
+            base_pri = LinearSVC(C=1.0, class_weight="balanced", max_iter=5000, random_state=42)
+            self.priority_clf = CalibratedClassifierCV(base_pri, cv=3)
             self.priority_clf.fit(X, y_priority)
 
         logger.success(f"Tous les classificateurs entraînés (mode: {self._embedding_mode}).")

@@ -50,7 +50,7 @@ This manual process was slow, incomplete, and inconsistent.
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   COLLECT   │───▶│  NORMALIZE  │───▶│    SCORE    │───▶│  CLASSIFY   │───▶│   GENERATE  │
-│  (5 sources)│    │ (deduplicate│    │  (0-100 rule│    │  (NLP: ML   │    │  (LLM: write│
+│  (6 sources)│    │ (deduplicate│    │  (0-100 rule│    │  (NLP: ML   │    │  (LLM: write│
 │             │    │  + upsert)  │    │  formula)   │    │  + sector)  │    │  outreach)  │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
        │                                                                             │
@@ -74,7 +74,8 @@ graph TB
         LIB["📢 LinkedIn\nCompany Posts"]
         BOAMP["🏛️ BOAMP\nFrance Gov Tenders"]
         TED["🇪🇺 TED EU\nPublic Tenders"]
-        MALT["👨‍💻 Malt.fr\nFreelance Market"]
+        CODEUR["👨‍💻 Codeur.com\nFreelance FR"]
+        TWAGO["🌍 TwagoFreelance\nFreelance FR/BE/CH"]
     end
 
     subgraph DOCKER["🐳 Docker Compose Stack"]
@@ -112,7 +113,8 @@ graph TB
     LIB --> COLLECT
     BOAMP --> INGEST
     TED --> INGEST
-    MALT --> COLLECT
+    CODEUR --> INGEST
+    TWAGO --> INGEST
 
     COLLECT --> INGEST
     INGEST --> DB
@@ -141,7 +143,7 @@ graph TB
 
 ## 📡 Data Sources & Signal Types
 
-The system monitors **5 sources** for **5 types of procurement signals**:
+The system monitors **6 sources** for **5 types of procurement signals**:
 
 ```mermaid
 graph LR
@@ -150,7 +152,8 @@ graph LR
         B["📢 LinkedIn Posts"]
         C["🏛️ BOAMP"]
         D["🇪🇺 TED EU"]
-        E["👨‍💻 Malt.fr"]
+        E["👨‍💻 Codeur.com"]
+        F["🌍 TwagoFreelance"]
     end
 
     subgraph SIGNALS["Signal Types"]
@@ -167,7 +170,8 @@ graph LR
     B -->|"Post contains\npartnership keywords"| S5
     C -->|"French public tender\nopen data API"| S3
     D -->|"EU public tender\nfor 4 countries"| S3
-    E -->|"Freelance project\nbriefs"| S3
+    E -->|"Freelance mission\nbriefs (France)"| S4
+    F -->|"Freelance mission\nbriefs (FR/BE/CH)"| S4
 ```
 
 ### Why Each Source?
@@ -178,7 +182,8 @@ graph LR
 | **LinkedIn B2B Posts** | Companies publicly announce RFPs and subcontracting needs | ~50–100 | Same as above |
 | **BOAMP** | Official French government tender open data — no auth required, structured JSON | ~215–236/week | None needed |
 | **TED EU** | Covers Belgium, Luxembourg, Switzerland — same signal type | ~30–50 | Standard retry |
-| **Malt.fr** | Freelance missions = companies with short-term tech needs | ~10–20 | CloudFlare bypass needed |
+| **Codeur.com** | Freelance missions = companies with confirmed IT need + available budget (France) | ~10–20/category | Standard 2s delay |
+| **TwagoFreelance** | Same signal across FR, BE, CH — broader geographic coverage | ~10–15/category | Standard 2s delay |
 
 ---
 
@@ -347,7 +352,8 @@ leadgen360/
 │   ├── linkedin_client.py         linkedin-api wrapper + cookie persistence
 │   ├── boamp.py                   French public tender open data API
 │   ├── ted.py                     EU public tender API (BE, LU, CH)
-│   ├── malt.py                    Malt.fr freelance marketplace
+│   ├── codeur.py                  Codeur.com freelance missions (France)
+│   ├── twago.py                   TwagoFreelance.com missions (FR/BE/CH)
 │   ├── session_manager.py         LinkedIn account pool (3 accounts max)
 │   └── run_all.py                 CLI orchestrator with argparse
 │
@@ -367,7 +373,7 @@ leadgen360/
 │
 ├── 🧠 nlp/                         Machine learning classification
 │   ├── classifier.py              SentenceTransformers + LogisticRegression (3 models)
-│   ├── trainer.py                 make train entry point
+│   ├── trainer.py                 python -m nlp.trainer entry point
 │   ├── evaluator.py               5-fold cross-val + confusion matrices
 │   ├── scorer.py                  Fuses rule score + NLP predictions
 │   ├── data/training_data.py      300+ hand-annotated French examples
@@ -1113,6 +1119,8 @@ python -m collectors.run_all
 # Or specific sources
 python -m collectors.run_all --source boamp    # safest: no auth needed
 python -m collectors.run_all --source ted      # EU tenders
+python -m collectors.run_all --source codeur   # Codeur.com freelance missions
+python -m collectors.run_all --source twago    # TwagoFreelance.com missions (FR/BE/CH)
 python -m collectors.run_all --source linkedin # LinkedIn (requires authenticated cookies)
 ```
 
@@ -1196,7 +1204,8 @@ python -m collectors.run_all --source linkedin      # LinkedIn jobs only
 python -m collectors.run_all --source linkedin_b2b  # LinkedIn B2B posts only
 python -m collectors.run_all --source boamp         # French public tenders only
 python -m collectors.run_all --source ted           # EU tenders (BE, LU, CH) only
-python -m collectors.run_all --source malt          # Malt.fr freelance only
+python -m collectors.run_all --source codeur        # Codeur.com freelance missions only
+python -m collectors.run_all --source twago         # TwagoFreelance.com missions only
 
 # ─── NLP ──────────────────────────────────────────────────
 python -m nlp.trainer                       # Train + evaluate NLP models (saves .joblib)

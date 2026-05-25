@@ -54,11 +54,12 @@ def evaluate(clf: OpportunityClassifier, data: list[tuple]) -> dict:
     y_sec_test_enc  = clf.sector_le.transform(y_sec_test)
 
     # Utilise le même type de modèle que l'entraînement principal
+    from sklearn.svm import LinearSVC as _LSVC
+    from sklearn.calibration import CalibratedClassifierCV as _CCCV
     if getattr(clf, "_embedding_mode", "") == "tfidf":
-        base = LinearSVC(C=1.0, max_iter=5000, random_state=42)
-        eval_sector_clf = CalibratedClassifierCV(base, cv=3)
+        eval_sector_clf = _CCCV(_LSVC(C=3.0, max_iter=5000, random_state=42), cv=3)
     else:
-        eval_sector_clf = LR(C=1.0, max_iter=1000, random_state=42)
+        eval_sector_clf = _CCCV(_LSVC(C=5.0, max_iter=5000, random_state=42), cv=3)
     eval_sector_clf.fit(X_train, y_sec_train_enc)
     y_sec_pred = eval_sector_clf.predict(X_test)
 
@@ -85,13 +86,12 @@ def evaluate(clf: OpportunityClassifier, data: list[tuple]) -> dict:
 
     # Cross-validation (sur l'ensemble complet, même architecture que l'entraînement)
     y_all_enc = clf.sector_le.transform(sectors)
+    from sklearn.svm import LinearSVC as _LSVC2
+    from sklearn.calibration import CalibratedClassifierCV as _CCCV2
     if getattr(clf, "_embedding_mode", "") == "tfidf":
-        from sklearn.svm import LinearSVC
-        from sklearn.calibration import CalibratedClassifierCV
-        cv_clf = CalibratedClassifierCV(LinearSVC(C=1.0, max_iter=5000, random_state=42), cv=3)
+        cv_clf = _CCCV2(_LSVC2(C=3.0, max_iter=5000, random_state=42), cv=3)
     else:
-        from sklearn.linear_model import LogisticRegression as LR
-        cv_clf = LR(C=1.0, max_iter=1000, random_state=42)
+        cv_clf = _CCCV2(_LSVC2(C=5.0, max_iter=5000, random_state=42), cv=3)
     cv_scores = cross_val_score(cv_clf, X, y_all_enc, cv=5, scoring="accuracy")
 
     # ─── Évaluation priorité (idem, entraîné sur X_train) ──────────────────
@@ -99,10 +99,10 @@ def evaluate(clf: OpportunityClassifier, data: list[tuple]) -> dict:
     y_pri_test_enc  = clf.priority_le.transform(y_pri_test)
 
     if getattr(clf, "_embedding_mode", "") == "tfidf":
-        base_p = LinearSVC(C=1.0, max_iter=5000, random_state=42)
+        base_p = LinearSVC(C=3.0, max_iter=5000, random_state=42)
         eval_priority_clf = CalibratedClassifierCV(base_p, cv=3)
     else:
-        eval_priority_clf = LR(C=2.0, max_iter=1000, random_state=42)
+        eval_priority_clf = LR(C=5.0, class_weight="balanced", max_iter=1000, random_state=42)
     eval_priority_clf.fit(X_train, y_pri_train_enc)
     y_pri_pred = eval_priority_clf.predict(X_test)
 

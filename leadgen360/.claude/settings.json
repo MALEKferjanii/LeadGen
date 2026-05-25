@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd d:\\\\personal\\\\scrapping\\\\leadgen360; $token = \\(Get-Content .env | Where-Object { $_ -match '^HUGGINGFACE_API_KEY=' }\\) -replace '^HUGGINGFACE_API_KEY=',''; $env:HF_TOKEN = $token; python -m nlp.trainer 2>&1)"
+    ]
+  }
+}

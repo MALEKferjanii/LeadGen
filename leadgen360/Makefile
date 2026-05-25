@@ -1,4 +1,4 @@
-.PHONY: up down collect collect-dry collect-linkedin collect-boamp collect-malt collect-ted train demo test status logs
+.PHONY: up down collect collect-dry collect-linkedin collect-boamp collect-ted collect-codeur collect-twago train demo test status logs
 
 up:
 	docker-compose up -d
@@ -41,8 +41,11 @@ collect-boamp:
 collect-boamp-dry:
 	LEADGEN_USE_TFIDF=1 python -m collectors.run_all --dry-run --source boamp
 
-collect-malt:
-	LEADGEN_USE_TFIDF=1 python -m collectors.run_all --source malt
+collect-codeur:
+	LEADGEN_USE_TFIDF=1 python -m collectors.run_all --source codeur
+
+collect-twago:
+	LEADGEN_USE_TFIDF=1 python -m collectors.run_all --source twago
 
 collect-ted:
 	LEADGEN_USE_TFIDF=1 python -m collectors.run_all --source ted
@@ -51,7 +54,7 @@ collect-ted-dry:
 	LEADGEN_USE_TFIDF=1 python -m collectors.run_all --dry-run --source ted
 
 train:
-	LEADGEN_USE_TFIDF=1 python -m nlp.trainer
+	python -m nlp.trainer
 
 demo:
 	@echo "Déclenchement du workflow de démo..."
